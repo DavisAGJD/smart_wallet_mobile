@@ -14,7 +14,7 @@ class ApiServiceLogin {
           'password_usuario': password,
         },
         options: Options(
-          headers: <String, String>{
+          headers: {
             'Content-Type': 'application/json; charset=UTF-8',
           },
         ),
@@ -35,9 +35,7 @@ class ApiServiceLogin {
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', token);
-        await prefs.setString('userId', userId.toString());
-
-        return;
+        await prefs.setString('userId', userId.toString()); // Guarda el userId
       } else {
         throw Exception('Error al iniciar sesión: ${response.statusCode}');
       }

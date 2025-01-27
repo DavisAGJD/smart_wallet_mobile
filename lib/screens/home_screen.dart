@@ -1,13 +1,14 @@
+// home_screen.dart
 import 'package:flutter/material.dart';
 import '../services/api_service_gastos.dart';
 import '../services/api_service_info.dart';
-import 'gastos_screen.dart';
 import '../widgets/header_section.dart';
 import '../widgets/expense_summary.dart';
 import '../widgets/transaction_item.dart';
 import '../widgets/quick_access_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../widgets/bottom_nav_bar.dart'; // Importa el BottomNavBar
+import '../widgets/bottom_nav_bar.dart';
+import '../widgets/modal_gastos.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -71,6 +72,40 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // home_screen.dart
+  void _mostrarModalGastos(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return GastosModal(
+          onSave: (category, amount) async {
+            final userId = await getUserId();
+            if (userId != null) {
+              try {
+                // Comenta la siguiente línea para deshabilitar la funcionalidad de agregar gastos
+                // await ApiServiceGastos().agregarGasto(userId, category, amount);
+
+                // Simula la actualización de la lista de gastos
+                _cargarUltimosGastos();
+
+                // Muestra un mensaje de confirmación
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content: Text(
+                          'Gasto de $amount en $category agregado (simulado)')),
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error al guardar el gasto: $e')),
+                );
+              }
+            }
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -110,11 +145,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           icon: Icons.attach_money,
                           title: 'Gastos',
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => GastosScreen()),
-                            );
+                            _mostrarModalGastos(context);
                           },
                         ),
                         QuickAccessCard(
@@ -151,9 +182,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     type: 'Gasto',
                                     amount: double.tryParse(
                                             gasto['monto'].toString()) ??
-                                        0.00, // Convertir a double
-                                    date:
-                                        'feb 21', // Ajusta la fecha según tus datos
+                                        0.00,
+                                    date: 'feb 21',
                                   );
                                 }).toList(),
                               ),
@@ -166,12 +196,12 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Lógica para agregar un nuevo gasto
+          _mostrarModalGastos(context);
         },
         backgroundColor: Colors.green,
         child: Icon(Icons.add, color: Colors.white),
       ),
-      bottomNavigationBar: const BottomNavBar(), // Agrega el BottomNavBar aquí
+      bottomNavigationBar: const BottomNavBar(),
     );
   }
 }

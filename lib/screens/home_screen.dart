@@ -9,6 +9,8 @@ import '../widgets/quick_access_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/modal_gastos.dart';
+import '../widgets/modal_metas.dart';
+import '../widgets/modal_alertas.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -106,6 +108,74 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _mostrarModalMetas(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return MetasModal(
+          onSave: (category, amount, date) async {
+            final userId = await getUserId();
+            if (userId != null) {
+              try {
+                // Aquí puedes agregar la lógica para guardar la meta en tu API
+                // Por ejemplo:
+                // await ApiServiceMetas().agregarMeta(userId, category, amount, date);
+
+                // Simula la actualización de la lista de metas (si es necesario)
+                // _cargarUltimasMetas();
+
+                // Muestra un mensaje de confirmación
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                        'Meta de $amount en $category agregada (simulado)'),
+                  ),
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error al guardar la meta: $e')),
+                );
+              }
+            }
+          },
+        );
+      },
+    );
+  }
+
+  void _mostrarModalRecordatorios(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return RecordatoriosModal(
+          onSave: (description, date) async {
+            final userId = await getUserId();
+            if (userId != null) {
+              try {
+                // Aquí puedes agregar la lógica para guardar el recordatorio en tu API
+                // Por ejemplo:
+                // await ApiServiceRecordatorios().agregarRecordatorio(userId, description, date);
+
+                // Muestra un mensaje de confirmación
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content:
+                        Text('Recordatorio "$description" agregado (simulado)'),
+                  ),
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content: Text('Error al guardar el recordatorio: $e')),
+                );
+              }
+            }
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -151,12 +221,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         QuickAccessCard(
                           icon: Icons.flag,
                           title: 'Metas',
-                          onTap: () {},
+                          onTap: () {
+                            _mostrarModalMetas(context);
+                          },
                         ),
                         QuickAccessCard(
                           icon: Icons.notifications,
                           title: 'Alertas',
-                          onTap: () {},
+                          onTap: () {
+                            _mostrarModalRecordatorios(context);
+                          },
                         ),
                       ],
                     ),

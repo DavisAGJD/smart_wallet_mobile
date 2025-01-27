@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 
-class GastosModal extends StatelessWidget {
-  final Function(String, double) onSave;
+class MetasModal extends StatelessWidget {
+  final Function(String, double, DateTime) onSave;
 
-  GastosModal({required this.onSave});
+  MetasModal({required this.onSave});
 
   @override
   Widget build(BuildContext context) {
-    String selectedCategory = 'Comida';
+    String selectedCategory = 'Ahorro';
     TextEditingController amountController = TextEditingController();
+    DateTime selectedDate = DateTime.now();
 
     return Dialog(
       shape: RoundedRectangleBorder(
@@ -16,14 +17,12 @@ class GastosModal extends StatelessWidget {
       ),
       child: SingleChildScrollView(
         padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context)
-              .viewInsets
-              .bottom, // Ajusta el espacio con el teclado
+          bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 25),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Colors.white, // Fondo blanco
             borderRadius: BorderRadius.circular(30),
           ),
           child: Column(
@@ -32,10 +31,11 @@ class GastosModal extends StatelessWidget {
               // Icono superior
               CircleAvatar(
                 radius: 40,
-                backgroundColor: Colors.greenAccent.withOpacity(0.2),
+                backgroundColor:
+                    Colors.greenAccent.withOpacity(0.2), // Fondo verde claro
                 child: Icon(
-                  Icons.attach_money,
-                  color: Colors.green,
+                  Icons.flag,
+                  color: Colors.green, // Ícono verde
                   size: 40,
                 ),
               ),
@@ -43,11 +43,11 @@ class GastosModal extends StatelessWidget {
 
               // Título
               Text(
-                'Agregar Gasto',
+                'Agregar Meta',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: Colors.black87, // Texto negro
                 ),
               ),
               const SizedBox(height: 20),
@@ -55,7 +55,7 @@ class GastosModal extends StatelessWidget {
               // Categorías
               DropdownButtonFormField<String>(
                 value: selectedCategory,
-                items: ['Comida', 'Automóvil', 'Hogar', 'Salud', 'Otros']
+                items: ['Ahorro', 'Viaje', 'Educación', 'Otros']
                     .map((String category) {
                   return DropdownMenuItem<String>(
                     value: category,
@@ -63,7 +63,7 @@ class GastosModal extends StatelessWidget {
                       children: [
                         Icon(
                           _getCategoryIcon(category),
-                          color: Colors.grey[600],
+                          color: Colors.grey[600], // Ícono gris
                         ),
                         const SizedBox(width: 10),
                         Text(category),
@@ -89,20 +89,43 @@ class GastosModal extends StatelessWidget {
               TextField(
                 controller: amountController,
                 decoration: InputDecoration(
-                  labelText: 'Monto',
-                  prefixIcon: Icon(Icons.monetization_on),
+                  labelText: 'Monto Objetivo',
+                  prefixIcon: Icon(Icons.monetization_on,
+                      color: Colors.grey[600]), // Ícono gris
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15),
                   ),
                 ),
                 keyboardType: TextInputType.number,
               ),
+              const SizedBox(height: 20),
+
+              // Selector de Fecha
+              ListTile(
+                title: Text("Fecha Límite"),
+                subtitle: Text(
+                  "${selectedDate.toLocal()}".split(' ')[0],
+                ),
+                trailing: Icon(Icons.calendar_today,
+                    color: Colors.grey[600]), // Ícono gris
+                onTap: () async {
+                  final DateTime? picked = await showDatePicker(
+                    context: context,
+                    initialDate: selectedDate,
+                    firstDate: DateTime.now(),
+                    lastDate: DateTime(2101),
+                  );
+                  if (picked != null && picked != selectedDate) {
+                    selectedDate = picked;
+                  }
+                },
+              ),
               const SizedBox(height: 30),
 
               // Botón Guardar
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor: Colors.green, // Botón verde
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -111,14 +134,14 @@ class GastosModal extends StatelessWidget {
                 ),
                 onPressed: () {
                   double amount = double.tryParse(amountController.text) ?? 0.0;
-                  onSave(selectedCategory, amount);
+                  onSave(selectedCategory, amount, selectedDate);
                   Navigator.of(context).pop();
 
                   // Mensaje de confirmación
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                          'Gasto de \$${amount.toStringAsFixed(2)} en $selectedCategory agregado'),
+                          'Meta de \$${amount.toStringAsFixed(2)} en $selectedCategory agregada'),
                     ),
                   );
                 },
@@ -127,6 +150,7 @@ class GastosModal extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
+                    color: Colors.white, // Texto blanco
                   ),
                 ),
               ),
@@ -139,14 +163,12 @@ class GastosModal extends StatelessWidget {
 
   IconData _getCategoryIcon(String category) {
     switch (category) {
-      case 'Comida':
-        return Icons.restaurant;
-      case 'Automóvil':
-        return Icons.directions_car;
-      case 'Hogar':
-        return Icons.home;
-      case 'Salud':
-        return Icons.favorite;
+      case 'Ahorro':
+        return Icons.savings;
+      case 'Viaje':
+        return Icons.flight;
+      case 'Educación':
+        return Icons.school;
       default:
         return Icons.more_horiz;
     }

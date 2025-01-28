@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service_articles.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class NewsScreen extends StatefulWidget {
   @override
@@ -152,8 +153,30 @@ class _NewsScreenState extends State<NewsScreen> {
                                         size: 16,
                                       ),
                                     ),
-                                    onTap: () {
-                                      // Acción al hacer clic
+                                    onTap: () async {
+                                      final url = article['link'];
+                                      if (url != null && url.isNotEmpty) {
+                                        if (await canLaunchUrl(
+                                            Uri.parse(url))) {
+                                          await launchUrl(Uri.parse(url));
+                                        } else {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                  'No se puede abrir el enlace'),
+                                            ),
+                                          );
+                                        }
+                                      } else {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                                'El enlace no está disponible'),
+                                          ),
+                                        );
+                                      }
                                     },
                                   ),
                                 );

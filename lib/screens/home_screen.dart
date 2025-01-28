@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/modal_gastos.dart';
 import '../widgets/modal_metas.dart';
 import '../widgets/modal_alertas.dart';
+import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -62,10 +63,21 @@ class _HomeScreenState extends State<HomeScreen> {
         throw Exception('Usuario no autenticado');
       }
 
-      final response =
-          await ApiServiceGastos().getGastosPaginados(userId, 1, 3);
+      // Obtener todos los gastos del usuario
+      final List<Map<String, dynamic>> response =
+          await ApiServiceGastos().getGastosByUserId(userId);
+
+      // Ordenar los gastos por fecha (asumiendo que hay un campo 'fecha' en cada gasto)
+      final gastosOrdenados = response
+          .where((gasto) => gasto['fecha'] != null)
+          .toList()
+        ..sort((a, b) => b['fecha'].compareTo(a['fecha']));
+
+      // Tomar los últimos 3 gastos
+      final ultimosGastos = gastosOrdenados.take(3).toList();
+
       setState(() {
-        _ultimosGastos = response['data'];
+        _ultimosGastos = ultimosGastos;
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -266,7 +278,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     amount: double.tryParse(
                                             gasto['monto'].toString()) ??
                                         0.00,
-                                    date: 'feb 21',
+                                    date: DateFormat('dd/MM/yyyy')
+                                        .format(DateTime.parse(gasto['fecha'])),
                                   );
                                 }).toList(),
                               ),

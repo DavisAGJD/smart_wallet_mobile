@@ -4,8 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ApiServiceGastos {
   final Dio _dio = Dio();
 
-  Future<Map<String, dynamic>> getGastosPaginados(
-      String userId, int page, int limit) async {
+  Future<List<Map<String, dynamic>>> getGastosByUserId(String userId) async {
     try {
       final token = await getToken();
       if (token == null) {
@@ -13,12 +12,7 @@ class ApiServiceGastos {
       }
 
       final response = await _dio.get(
-        'https://backend-smartwallet.onrender.com/api/gastos/paginados',
-        queryParameters: {
-          'usuario_id': userId,
-          'page': page,
-          'limit': limit,
-        },
+        'https://backend-smartwallet.onrender.com/api/gastos/user/$userId',
         options: Options(
           headers: {
             'Authorization': 'Bearer $token',
@@ -27,7 +21,22 @@ class ApiServiceGastos {
       );
 
       if (response.statusCode == 200) {
-        return response.data;
+        final data = response.data;
+
+        // Manejar el caso en el que la API devuelve un objeto { data: [...] }
+        if (data is Map<String, dynamic> && data.containsKey('data')) {
+          return (data['data'] as List)
+              .whereType<
+                  Map<String, dynamic>>() // Filtra solo los objetos correctos
+              .toList();
+        }
+
+        // Manejar el caso en el que la API devuelve una lista directamente
+        if (data is List) {
+          return data.whereType<Map<String, dynamic>>().toList();
+        }
+
+        throw Exception('Estructura de respuesta inesperada');
       } else {
         throw Exception('Error al obtener los gastos: ${response.statusCode}');
       }

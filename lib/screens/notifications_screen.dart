@@ -23,7 +23,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Future<void> _fetchNotifications() async {
     try {
-      final notifications = await _apiService.getNotificationsByUser(widget.userId);
+      final notifications =
+          await _apiService.getNotificationsByUser(widget.userId);
       setState(() {
         _notifications = notifications;
         _isLoading = false;
@@ -58,14 +59,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     try {
       await _apiService.updateNotification(notificationId, {'leida': true});
       setState(() {
-        final index = _notifications.indexWhere((n) => n['id'] == notificationId);
+        final index =
+            _notifications.indexWhere((n) => n['id'] == notificationId);
         if (index != -1) {
           _notifications[index]['leida'] = true;
         }
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al marcar la notificación como leída: $e')),
+        SnackBar(
+            content: Text('Error al marcar la notificación como leída: $e')),
       );
     }
   }
@@ -75,7 +78,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Notificaciones',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white)),
         centerTitle: true,
         backgroundColor: const Color(0xFF228B22),
       ),
@@ -93,7 +99,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   itemBuilder: (context, index) {
                     final notification = _notifications[index];
                     return Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: notification['leida']
@@ -141,7 +148,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           ),
                           IconButton(
                             icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => _deleteNotification(notification['id']),
+                            onPressed: () =>
+                                _deleteNotification(notification['id']),
                           ),
                           IconButton(
                             icon: Icon(

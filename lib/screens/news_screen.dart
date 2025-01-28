@@ -39,7 +39,7 @@ class _NewsScreenState extends State<NewsScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF228B22),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF00DDA3),
+        backgroundColor: const Color(0xFF228B22),
         elevation: 0,
         title: const Text(
           'Noticias',
@@ -56,10 +56,6 @@ class _NewsScreenState extends State<NewsScreen> {
         child: Container(
           decoration: const BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(30),
-              topRight: Radius.circular(30),
-            ),
           ),
           child: Padding(
             padding: const EdgeInsets.all(20.0),
@@ -109,13 +105,18 @@ class _NewsScreenState extends State<NewsScreen> {
                                     contentPadding: const EdgeInsets.all(16),
                                     leading: ClipRRect(
                                       borderRadius: BorderRadius.circular(12),
-                                      child: article['image'] != null && article['image'].toString().isNotEmpty
+                                      child: article['image_url'] != null &&
+                                              article['image_url']
+                                                  .toString()
+                                                  .isNotEmpty
                                           ? Image.network(
-                                              article['image'],
+                                              article['image_url'],
                                               width: 80,
                                               height: 80,
                                               fit: BoxFit.cover,
-                                              errorBuilder: (context, error, stackTrace) => const Icon(
+                                              errorBuilder: (context, error,
+                                                      stackTrace) =>
+                                                  const Icon(
                                                 Icons.broken_image,
                                                 color: Colors.grey,
                                                 size: 80,
@@ -132,7 +133,8 @@ class _NewsScreenState extends State<NewsScreen> {
                                       ),
                                     ),
                                     subtitle: Text(
-                                      article['summary'] ?? 'Sin resumen disponible.',
+                                      article['summary'] ??
+                                          'Haz click para ir al enlace',
                                       style: const TextStyle(
                                         fontSize: 14,
                                         color: Color(0xFF5B5B5B),

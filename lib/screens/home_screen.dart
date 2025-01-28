@@ -75,26 +75,31 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // home_screen.dart
-  void _mostrarModalGastos(BuildContext context) {
+  void _mostrarModalGastos(BuildContext context) async {
+    final token = await getToken(); // Obtén el token
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No se pudo obtener el token de autenticación')),
+      );
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return GastosModal(
-          onSave: (category, amount) async {
+          onSave: (String category, double amount, String description) async {
             final userId = await getUserId();
             if (userId != null) {
               try {
-                // Comenta la siguiente línea para deshabilitar la funcionalidad de agregar gastos
-                // await ApiServiceGastos().agregarGasto(userId, category, amount);
-
-                // Simula la actualización de la lista de gastos
                 _cargarUltimosGastos();
 
-                // Muestra un mensaje de confirmación
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                      content: Text(
-                          'Gasto de $amount en $category agregado (simulado)')),
+                    content: Text(
+                      'Gasto de $amount en $category con descripción "$description" agregado (simulado)',
+                    ),
+                  ),
                 );
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -103,6 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
               }
             }
           },
+          token: token, // Pasa el token al modal
         );
       },
     );

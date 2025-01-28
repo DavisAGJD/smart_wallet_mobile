@@ -1,4 +1,3 @@
-// home_screen.dart
 import 'package:flutter/material.dart';
 import '../services/api_service_gastos.dart';
 import '../services/api_service_info.dart';
@@ -7,7 +6,6 @@ import '../widgets/expense_summary.dart';
 import '../widgets/transaction_item.dart';
 import '../widgets/quick_access_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../widgets/bottom_nav_bar.dart';
 import '../widgets/modal_gastos.dart';
 import '../widgets/modal_metas.dart';
 import '../widgets/modal_alertas.dart';
@@ -74,6 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+<<<<<<< HEAD
   // home_screen.dart
   void _mostrarModalGastos(BuildContext context) async {
     final token = await getToken(); // Obtén el token
@@ -84,6 +83,9 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
+=======
+  void _mostrarModalGastos(BuildContext context) {
+>>>>>>> d16ab3a3e1e60724ebed064abf581a453dc9e48c
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -206,7 +208,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Accesos rapidos',
+                      'Accesos rápidos',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -242,7 +244,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 30),
                     const Text(
-                      'Ultimos Gastos',
+                      'Últimos Gastos',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -281,7 +283,6 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.green,
         child: Icon(Icons.add, color: Colors.white),
       ),
-      bottomNavigationBar: const BottomNavBar(),
     );
   }
 }

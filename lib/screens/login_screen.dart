@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service_login.dart';
-import 'home_screen.dart'; // Asegúrate de que esta importación esté presente
+import 'main_screen.dart'; // Importa MainScreen
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -20,10 +20,11 @@ class _LoginScreenState extends State<LoginScreen> {
           _emailController.text,
           _passwordController.text,
         );
-        // Navegar a la pantalla principal después del inicio de sesión exitoso
+
+        // Redirigir al MainScreen (Navbar con HomeScreen inicial)
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomeScreen()), // Corrige aquí
+          MaterialPageRoute(builder: (context) => MainScreen()),
         );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -100,9 +101,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-              SizedBox(height: 20),
-              Text('O inicia sesión con'),
-              SizedBox(height: 20),
             ],
           ),
         ),

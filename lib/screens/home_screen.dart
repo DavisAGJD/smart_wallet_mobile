@@ -1,4 +1,3 @@
-// home_screen.dart
 import 'package:flutter/material.dart';
 import '../services/api_service_gastos.dart';
 import '../services/api_service_info.dart';
@@ -7,7 +6,6 @@ import '../widgets/expense_summary.dart';
 import '../widgets/transaction_item.dart';
 import '../widgets/quick_access_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../widgets/bottom_nav_bar.dart';
 import '../widgets/modal_gastos.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -72,7 +70,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // home_screen.dart
   void _mostrarModalGastos(BuildContext context) {
     showDialog(
       context: context,
@@ -82,13 +79,8 @@ class _HomeScreenState extends State<HomeScreen> {
             final userId = await getUserId();
             if (userId != null) {
               try {
-                // Comenta la siguiente línea para deshabilitar la funcionalidad de agregar gastos
-                // await ApiServiceGastos().agregarGasto(userId, category, amount);
-
-                // Simula la actualización de la lista de gastos
                 _cargarUltimosGastos();
 
-                // Muestra un mensaje de confirmación
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                       content: Text(
@@ -130,7 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Accesos rapidos',
+                      'Accesos rápidos',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -162,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 30),
                     const Text(
-                      'Ultimos Gastos',
+                      'Últimos Gastos',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -201,7 +193,6 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.green,
         child: Icon(Icons.add, color: Colors.white),
       ),
-      bottomNavigationBar: const BottomNavBar(),
     );
   }
 }

@@ -9,7 +9,7 @@ void main() async {
   final token = prefs.getString('token');
 
   runApp(MyApp(
-    initialRoute: token != null ? '/home' : '/',
+    initialRoute: token != null ? '/' : '/',
   ));
 }
 

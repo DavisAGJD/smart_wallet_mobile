@@ -1,3 +1,4 @@
+// home_screen.dart
 import 'package:flutter/material.dart';
 import '../services/api_service_gastos.dart';
 import '../services/api_service_info.dart';
@@ -30,6 +31,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<String?> getUserId() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('userId');
+  }
+
+  Future<String?> getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('token');
   }
 
   Future<void> _cargarNombreUsuario() async {
@@ -72,8 +78,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-<<<<<<< HEAD
-  // home_screen.dart
   void _mostrarModalGastos(BuildContext context) async {
     final token = await getToken(); // Obtén el token
     if (token == null) {
@@ -83,9 +87,6 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-=======
-  void _mostrarModalGastos(BuildContext context) {
->>>>>>> d16ab3a3e1e60724ebed064abf581a453dc9e48c
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -208,7 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Accesos rápidos',
+                      'Accesos rapidos',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -244,7 +245,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 30),
                     const Text(
-                      'Últimos Gastos',
+                      'Ultimos Gastos',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,

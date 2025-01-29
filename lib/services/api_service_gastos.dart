@@ -115,3 +115,21 @@ class PostServiceGastos {
     }
   }
 }
+
+class ApiServiceGastosGrafica {
+  final Dio _dio = Dio();
+
+  Future<List<Map<String, dynamic>>> obtenerGastosPorUsuario(
+      String usuarioId, String token) async {
+    try {
+      final response = await _dio.get(
+        'https://backend-smartwallet.onrender.com/api/gastos/user/$usuarioId',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      return List<Map<String, dynamic>>.from(response.data);
+    } catch (error) {
+      print('Error al obtener los gastos del usuario: $error');
+      throw error;
+    }
+  }
+}

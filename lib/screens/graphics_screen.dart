@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import '../services/api_service_gastos.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'gastos_screen.dart';
+import '../widgets/budget_indicator.dart';
+import '../widgets/category_item.dart';
+import '../models/chart_data.dart';
+import '../models/category_data.dart';
+import '../utils/graphics_constants.dart';
 
 class GraphicsScreen extends StatefulWidget {
   @override
@@ -11,24 +17,68 @@ class GraphicsScreen extends StatefulWidget {
 class _GraphicsScreenState extends State<GraphicsScreen> {
   final ApiServiceGastosGrafica _apiService = ApiServiceGastosGrafica();
   List<ChartData> chartData = [];
+  List<CategoryData> categoriesData = [];
   double totalExpenses = 0.0;
   bool isLoading = true;
-
-  final List<Color> _chartColors = [
-    Colors.red,
-    Colors.orange,
-    Colors.green,
-    Colors.purple,
-    Colors.blue,
-    Colors.pink,
-    Colors.teal,
-    Colors.yellow
-  ];
+  double monthlyBudget = 500.0;
+  int daysLeftInMonth = 0;
+  double dailyBudget = 0.0;
+  double maxCategorySpent = 0.0;
+  late FocusNode _focusNode;
+  bool _firstLoad = true;
 
   @override
   void initState() {
     super.initState();
-    fetchExpenses();
+    _calculateDaysLeft();
+    _initializeFocusNode();
+    // Carga inicial después del primer frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadInitialData();
+    });
+  }
+
+  Future<void> _loadInitialData() async {
+    try {
+      await fetchExpenses();
+    } catch (e) {
+      print('Error en carga inicial: $e');
+      setState(() => isLoading = false);
+    }
+  }
+
+  void _initializeFocusNode() {
+    _focusNode = FocusNode();
+    _focusNode.addListener(() {
+      if (_focusNode.hasFocus && mounted && !_firstLoad) {
+        _refreshData();
+      }
+      _firstLoad = false;
+    });
+  }
+
+  Future<void> _refreshData() async {
+    if (!mounted) return;
+
+    setState(() {
+      isLoading = true;
+      chartData.clear();
+      categoriesData.clear();
+      totalExpenses = 0.0;
+    });
+
+    try {
+      await fetchExpenses();
+    } catch (e) {
+      print('Error al actualizar datos: $e');
+      setState(() => isLoading = false);
+    }
+  }
+
+  void _calculateDaysLeft() {
+    final now = DateTime.now();
+    final lastDay = DateTime(now.year, now.month + 1, 0);
+    daysLeftInMonth = lastDay.difference(now).inDays + 1;
   }
 
   Future<String?> getToken() async {
@@ -38,7 +88,7 @@ class _GraphicsScreenState extends State<GraphicsScreen> {
 
   Future<String?> getUserId() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('userId'); // Asegúrate de que el key sea correcto
+    return prefs.getString('userId');
   }
 
   Future<void> fetchExpenses() async {
@@ -50,204 +100,269 @@ class _GraphicsScreenState extends State<GraphicsScreen> {
         throw Exception('No se pudo obtener el token o el ID del usuario');
       }
 
-      print('Obteniendo gastos para el usuario: $userId');
       final expenses = await _apiService.obtenerGastosPorUsuario(userId, token);
-      print('Todos los gastos obtenidos: $expenses');
 
-      if (expenses.isEmpty) {
-        setState(() {
-          isLoading = false;
-          chartData = [];
-        });
+      if (expenses == null || expenses.isEmpty) {
+        setState(() => isLoading = false);
         return;
       }
 
-      // Obtener el mes y año actuales
       final now = DateTime.now();
-      final currentMonth = now.month;
-      final currentYear = now.year;
-
-      // Filtrar los gastos solo del mes actual
       final filteredExpenses = expenses.where((expense) {
         final fecha = DateTime.tryParse(expense['fecha'] ?? '');
         return fecha != null &&
-            fecha.month == currentMonth &&
-            fecha.year == currentYear;
+            fecha.month == now.month &&
+            fecha.year == now.year;
       }).toList();
 
-      print('Gastos filtrados para el mes actual: $filteredExpenses');
-
-      if (filteredExpenses.isEmpty) {
-        setState(() {
-          isLoading = false;
-          chartData = [];
-        });
-        return;
-      }
-
-      final total = filteredExpenses.fold(0.0, (acc, expense) {
-        final monto = double.tryParse(expense['monto'].toString()) ?? 0.0;
-        return acc + monto;
+      totalExpenses = filteredExpenses.fold(0.0, (sum, expense) {
+        return sum + (double.tryParse(expense['monto'].toString()) ?? 0.0);
       });
 
-      final groupedExpenses = <String, Map<String, dynamic>>{};
-
+      final grouped = <String, CategoryData>{};
       for (var expense in filteredExpenses) {
         final categoriaId = expense['categoria_gasto_id'].toString();
         final monto = double.tryParse(expense['monto'].toString()) ?? 0.0;
+        final nombre = expense['nombre_categoria'] ?? 'Otros';
 
-        if (!groupedExpenses.containsKey(categoriaId)) {
-          groupedExpenses[categoriaId] = {
-            'nombre': expense['nombre_categoria'] ?? 'Desconocido',
-            'monto': 0.0,
-          };
+        if (!grouped.containsKey(categoriaId)) {
+          grouped[categoriaId] = CategoryData(
+            name: nombre,
+            spent: 0.0,
+            transactions: 0,
+            color: chartColors[grouped.length % chartColors.length],
+          );
         }
-        groupedExpenses[categoriaId]!['monto'] += monto;
+
+        grouped[categoriaId] = grouped[categoriaId]!.copyWith(
+          spent: grouped[categoriaId]!.spent + monto,
+          transactions: grouped[categoriaId]!.transactions + 1,
+        );
       }
 
-      final categoriesData = groupedExpenses.values.toList()
-        ..sort((a, b) => b['monto'].compareTo(a['monto']));
+      categoriesData =
+          grouped.values.where((category) => category.name != "Otros").toList();
+      maxCategorySpent = categoriesData.fold(
+          0.0, (max, item) => item.spent > max ? item.spent : max);
+      dailyBudget = (monthlyBudget - totalExpenses) / daysLeftInMonth;
 
-      final pieData = List.generate(categoriesData.length, (index) {
-        return ChartData(
-          categoriesData[index]['nombre'],
-          categoriesData[index]['monto'],
-          _chartColors[index % _chartColors.length],
-        );
-      }).take(4).toList();
+      chartData = categoriesData
+          .map((category) => ChartData(
+                category.name,
+                getCategoryIcon(category.name),
+                category.spent,
+                category.color,
+              ))
+          .toList();
 
-      setState(() {
-        totalExpenses = total;
-        chartData = pieData;
-        isLoading = false;
-      });
-
-      print('Gastos procesados para la gráfica: $chartData');
+      if (mounted) setState(() => isLoading = false);
     } catch (error) {
-      print('Error al obtener gastos del usuario: $error');
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) setState(() => isLoading = false);
     }
   }
 
   @override
+  void dispose() {
+    _focusNode.removeListener(() {});
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF228B22),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF228B22),
-        elevation: 0,
-        title: const Text(
-          'Gráficos',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+    return Focus(
+      focusNode: _focusNode,
+      autofocus: true,
+      onFocusChange: (hasFocus) {
+        if (hasFocus && mounted) {
+          _refreshData();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Color(0xFF228B22),
+        appBar: AppBar(
+          backgroundColor: Color(0xFF228B22),
+          title: Text('Resumen de Gastos',
+              style: TextStyle(fontSize: 24, color: Colors.white)),
+          centerTitle: true,
+          elevation: 0,
+          iconTheme: IconThemeData(color: Colors.white),
         ),
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: Column(
-        children: [
-          Container(
-            height: MediaQuery.of(context).size.height * 0.25,
-            color: const Color(0xFF228B22),
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  'Gastos del Mes',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+        body: Column(
+          children: [
+            Container(
+              padding: EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  Text('Gastos Mensuales',
+                      style: TextStyle(
+                          fontSize: 22,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold)),
+                  SizedBox(height: 20),
+                  BudgetIndicator(
+                    monthlyBudget: monthlyBudget,
+                    totalExpenses: totalExpenses,
+                    daysLeftInMonth: daysLeftInMonth,
+                    dailyBudget: dailyBudget,
                   ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  '\$${totalExpenses.toStringAsFixed(2)} gastados',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
-                ),
+                ],
               ),
-              padding: const EdgeInsets.all(20),
-              child: Center(
+            ),
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+                ),
                 child: isLoading
-                    ? CircularProgressIndicator()
-                    : (chartData.isEmpty
-                        ? const Text(
-                            'No hay datos disponibles para este mes',
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold),
-                          )
-                        : SfCircularChart(
-                            title: ChartTitle(
-                              text: 'Distribución de Gastos',
-                              textStyle: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
-                            ),
-                            legend: Legend(
-                              isVisible: true,
-                              position: LegendPosition.bottom,
-                              textStyle: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
-                            ),
-                            series: <CircularSeries>[
-                              PieSeries<ChartData, String>(
-                                dataSource: chartData,
-                                xValueMapper: (ChartData data, _) =>
-                                    data.category,
-                                yValueMapper: (ChartData data, _) => data.value,
-                                pointColorMapper: (ChartData data, _) =>
-                                    data.color,
-                                dataLabelSettings: const DataLabelSettings(
-                                  isVisible: true,
-                                  labelPosition: ChartDataLabelPosition.outside,
-                                  textStyle: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
+                    ? Center(
+                        child:
+                            CircularProgressIndicator(color: Color(0xFF228B22)))
+                    : chartData.isEmpty
+                        ? Center(child: Text('No hay datos disponibles'))
+                        : SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.only(
+                                      top: 20, left: 20, right: 20),
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                GastosScreen()),
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Color(0xFF228B22),
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(15),
+                                      ),
+                                      minimumSize: Size(double.infinity, 50),
+                                      elevation: 3,
+                                    ),
+                                    child: Text(
+                                      'Ver Gastos',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                                animationDuration: 1500,
-                              ),
-                            ],
-                          )),
+                                SizedBox(height: 20),
+                                Container(
+                                  height: 300,
+                                  padding: EdgeInsets.all(20),
+                                  child: SfCircularChart(
+                                    margin: EdgeInsets.zero,
+                                    series: <CircularSeries>[
+                                      PieSeries<ChartData, String>(
+                                        dataSource: chartData,
+                                        xValueMapper: (ChartData data, _) =>
+                                            data.name,
+                                        yValueMapper: (ChartData data, _) =>
+                                            data.value,
+                                        pointColorMapper: (ChartData data, _) =>
+                                            data.color,
+                                        dataLabelSettings: DataLabelSettings(
+                                          isVisible: true,
+                                          labelPosition:
+                                              ChartDataLabelPosition.outside,
+                                          textStyle: TextStyle(fontSize: 12),
+                                          builder:
+                                              (dynamic data, _, __, ___, ____) {
+                                            return Icon(
+                                              (data as ChartData).icon,
+                                              color: data.color,
+                                              size: 24,
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  height: 80,
+                                  child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    padding:
+                                        EdgeInsets.symmetric(horizontal: 20),
+                                    itemCount: chartData.length,
+                                    itemBuilder: (context, index) {
+                                      final data = chartData[index];
+                                      final percentage = totalExpenses > 0
+                                          ? (data.value / totalExpenses * 100)
+                                              .toStringAsFixed(1)
+                                          : '0.0';
+
+                                      return Container(
+                                        margin: EdgeInsets.only(right: 10),
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 10, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: data.color.withOpacity(0.1),
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                          border: Border.all(
+                                              color:
+                                                  data.color.withOpacity(0.3)),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(data.icon,
+                                                color: data.color, size: 20),
+                                            SizedBox(width: 8),
+                                            Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(data.name,
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: Colors.grey[800],
+                                                    )),
+                                                Text('$percentage%',
+                                                    style: TextStyle(
+                                                      fontSize: 11,
+                                                      color: Colors.grey[600],
+                                                    )),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                                ListView.builder(
+                                  physics: NeverScrollableScrollPhysics(),
+                                  shrinkWrap: true,
+                                  itemCount: categoriesData.length,
+                                  itemBuilder: (context, index) {
+                                    return CategoryItem(
+                                        categoryData: categoriesData[index],
+                                        totalExpenses: totalExpenses);
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
-}
-
-class ChartData {
-  final String category;
-  final double value;
-  final Color color;
-
-  ChartData(this.category, this.value, this.color);
 }

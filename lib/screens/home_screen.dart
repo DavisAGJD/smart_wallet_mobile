@@ -108,14 +108,6 @@ class _HomeScreenState extends State<HomeScreen> {
             if (userId != null) {
               try {
                 _cargarUltimosGastos();
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Gasto de $amount en $category con descripción "$description" agregado (simulado)',
-                    ),
-                  ),
-                );
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('Error al guardar el gasto: $e')),

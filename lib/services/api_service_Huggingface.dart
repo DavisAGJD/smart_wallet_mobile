@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 
 Future<String> getHuggingFaceResponse(String userInput) async {
-  final String apiKey = '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';
-  final String endpoint = 'https://api-inference.huggingface.co/models/EleutherAI/gpt-neo-2.7B';
+  final String apiKey = '';
+  final String endpoint = '';
 
   Dio dio = Dio();
 

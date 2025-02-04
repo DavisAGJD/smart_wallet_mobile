@@ -43,6 +43,7 @@ dependencies:
 
   # Other dependencies
   dio: ^5.0.0
+  speech_to_text: ^6.3.0
   shared_preferences: ^2.2.2
   jwt_decoder: ^2.0.1
   intl: ^0.18.1

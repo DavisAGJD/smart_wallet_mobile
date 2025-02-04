@@ -8,8 +8,8 @@ import '../widgets/transaction_item.dart';
 import '../widgets/quick_access_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/modal_gastos.dart';
-import '../widgets/modal_metas.dart';
 import '../widgets/modal_alertas.dart';
+import '../widgets/modal_add_goal.dart';
 import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -125,33 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return MetasModal(
-          onSave: (category, amount, date) async {
-            final userId = await getUserId();
-            if (userId != null) {
-              try {
-                // Aquí puedes agregar la lógica para guardar la meta en tu API
-                // Por ejemplo:
-                // await ApiServiceMetas().agregarMeta(userId, category, amount, date);
-
-                // Simula la actualización de la lista de metas (si es necesario)
-                // _cargarUltimasMetas();
-
-                // Muestra un mensaje de confirmación
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                        'Meta de $amount en $category agregada (simulado)'),
-                  ),
-                );
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error al guardar la meta: $e')),
-                );
-              }
-            }
-          },
-        );
+        return MetasAddAmountModal();
       },
     );
   }

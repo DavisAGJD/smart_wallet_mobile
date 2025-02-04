@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/api_service_profile.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io'; // Para manejar archivos de imagen
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -20,9 +21,8 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   late TabController _tabController;
 
-  final ApiServiceProfile _apiService = ApiServiceProfile();
-
   bool _isLoading = false;
+  File? _imageFile; // Variable para almacenar la imagen seleccionada
 
   final Color primaryGreen = const Color(0xFF228B22);
   final Color accentColor = const Color(0xFF32CD32);
@@ -33,52 +33,15 @@ class _ProfileScreenState extends State<ProfileScreen>
     _tabController = TabController(length: 2, vsync: this);
   }
 
-  Future<void> _updatePersonalInfo() async {
-    if (_personalFormKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
+  // Método para seleccionar una imagen desde la galería
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
-      try {
-        await _apiService.updateUser(
-          usuarioId: '123', // Reemplaza con el ID real de tu usuario
-          name: _nameController.text,
-          username: _usernameController.text,
-        );
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Información personal actualizada con éxito')),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al actualizar la información personal: $e')),
-        );
-      } finally {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
-
-  Future<void> _updateAccountSettings() async {
-    if (_accountFormKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
-
-      try {
-        await _apiService.updateUser(
-          usuarioId: '123', // Reemplaza con el ID real de tu usuario
-          email: _emailController.text,
-          password: _passwordController.text.isNotEmpty
-              ? _passwordController.text
-              : null,
-        );
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Configuración de cuenta actualizada con éxito')),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al actualizar la cuenta: $e')),
-        );
-      } finally {
-        setState(() => _isLoading = false);
-      }
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
     }
   }
 
@@ -90,6 +53,111 @@ class _ProfileScreenState extends State<ProfileScreen>
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[100],
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          SliverAppBar(
+            pinned: true,
+            expandedHeight: 250,
+            automaticallyImplyLeading: true,
+            flexibleSpace: FlexibleSpaceBar(
+              centerTitle: true,
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      primaryGreen,
+                      accentColor,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        CircleAvatar(
+                          radius: 50,
+                          backgroundColor: Colors.white,
+                          backgroundImage:
+                              _imageFile != null ? FileImage(_imageFile!) : null,
+                          child: _imageFile == null
+                              ? Icon(
+                                  Icons.person,
+                                  size: 60,
+                                  color: primaryGreen,
+                                )
+                              : null,
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: primaryGreen,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.camera_alt,
+                                  color: Colors.white),
+                              onPressed: _pickImage,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Perfil',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                ),
+              ),
+            ),
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(48),
+              child: Container(
+                color: Colors.white,
+                child: TabBar(
+                  controller: _tabController,
+                  labelColor: primaryGreen,
+                  unselectedLabelColor: Colors.grey,
+                  labelStyle: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
+                  indicatorColor: primaryGreen,
+                  tabs: const [
+                    Tab(text: 'Personal'),
+                    Tab(text: 'Cuenta'),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            _buildPersonalInfoTab(),
+            _buildAccountSettingsTab(),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildPersonalInfoTab() {
@@ -143,7 +211,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                       controller: _usernameController,
                       decoration: InputDecoration(
                         labelText: 'Nombre de Usuario',
-                        prefixIcon: Icon(Icons.alternate_email, color: primaryGreen),
+                        prefixIcon:
+                            Icon(Icons.alternate_email, color: primaryGreen),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -161,7 +230,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _isLoading ? null : _updatePersonalInfo,
+                onPressed: _isLoading ? null : () {}, // Aquí puedes agregar la lógica de guardar
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryGreen,
                   foregroundColor: Colors.white,
@@ -228,7 +297,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                         if (value == null || value.isEmpty) {
                           return 'Por favor ingresa tu correo';
                         }
-                        if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value)) {
+                        if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+                            .hasMatch(value)) {
                           return 'Por favor ingresa un correo válido';
                         }
                         return null;
@@ -258,7 +328,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _isLoading ? null : _updateAccountSettings,
+                onPressed: _isLoading ? null : () {}, // Aquí puedes agregar la lógica de guardar
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryGreen,
                   foregroundColor: Colors.white,
@@ -276,86 +346,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                       ),
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      body: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxIsScrolled) => [
-          SliverAppBar(
-            pinned: true,
-            expandedHeight: 250,
-            automaticallyImplyLeading: true,
-            flexibleSpace: FlexibleSpaceBar(
-              centerTitle: true,
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      primaryGreen,
-                      accentColor,
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.white,
-                      child: Icon(
-                        Icons.person,
-                        size: 60,
-                        color: primaryGreen,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      'Perfil',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                  ],
-                ),
-              ),
-            ),
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(48),
-              child: Container(
-                color: Colors.white,
-                child: TabBar(
-                  controller: _tabController,
-                  labelColor: primaryGreen,
-                  unselectedLabelColor: Colors.grey,
-                  labelStyle: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
-                  indicatorColor: primaryGreen,
-                  tabs: const [
-                    Tab(text: 'Personal'),
-                    Tab(text: 'Cuenta'),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-        body: TabBarView(
-          controller: _tabController,
-          children: [
-            _buildPersonalInfoTab(),
-            _buildAccountSettingsTab(),
           ],
         ),
       ),

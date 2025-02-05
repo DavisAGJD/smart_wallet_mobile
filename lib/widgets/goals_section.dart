@@ -53,40 +53,75 @@ class _GoalsSectionState extends State<GoalsSection> {
                   );
                 }
 
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text('Error: ${snapshot.error}'),
-                        const SizedBox(height: 10),
-                        TextButton(
-                          onPressed: _loadMetas,
-                          child: const Text('Reintentar'),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
                 final metas = snapshot.data ?? [];
-
-                if (metas.isEmpty) {
-                  return const Center(
-                    child: Text('No hay metas registradas'),
-                  );
-                }
 
                 return Column(
                   children: [
                     _buildAddButton(context),
-                    Expanded(
-                      child: _buildGoalsCarousel(metas),
-                    ),
+                    metas.isEmpty
+                        ? _buildEmptyState() // Mostrar estado vacío
+                        : Expanded(
+                            child: _buildGoalsCarousel(metas),
+                          ),
                   ],
                 );
               },
             ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Expanded(
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.flag, size: 50, color: Colors.grey[400]),
+            const SizedBox(height: 20),
+            Text(
+              'No tienes metas creadas',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Presiona el botón "Agregar Meta" para comenzar',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[500],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.error_outline, size: 50, color: Colors.red),
+          const SizedBox(height: 20),
+          const Text(
+            'Error al cargar las metas',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.red,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 10),
+          TextButton(
+            onPressed: _loadMetas,
+            child: const Text('Intentar nuevamente'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -129,6 +164,7 @@ class _GoalsSectionState extends State<GoalsSection> {
               meta.montoActual / meta.montoObjetivo,
               meta.montoObjetivo,
               meta.montoActual,
+              meta.categoriaNombre,
             ),
           );
         },
@@ -136,8 +172,10 @@ class _GoalsSectionState extends State<GoalsSection> {
     );
   }
 
-  Widget _buildGoalPage(
-      String title, double progress, double metaTotal, double metaActual) {
+  Widget _buildGoalPage(String title, double progress, double metaTotal,
+      double metaActual, String categoriaNombre) {
+    final clampedProgress = progress.clamp(0.0, 1.0);
+
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -145,41 +183,67 @@ class _GoalsSectionState extends State<GoalsSection> {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.4,
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
               ),
               child: CircularPercentIndicator(
                 radius: MediaQuery.of(context).size.width * 0.35,
                 lineWidth: 12,
-                percent: progress,
+                percent: clampedProgress,
+                animation: true,
+                animationDuration: 800,
+                circularStrokeCap: CircularStrokeCap.round,
                 progressColor: const Color(0xFF228B22),
                 backgroundColor: Colors.grey[200]!,
-                circularStrokeCap: CircularStrokeCap.round,
-                center: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      '${(progress * 100).toStringAsFixed(0)}%',
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF228B22),
+                center: Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 6,
+                        offset: const Offset(0, 3),
                       ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Icon(
+                      _getCategoryIcon(categoriaNombre),
+                      size: 30,
+                      color: const Color(0xFF228B22),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Completado',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
             const SizedBox(height: 15),
+            Text(
+              '${(clampedProgress * 100).toStringAsFixed(0)}%',
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF228B22),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Completado',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+              ),
+            ),
             Text(
               title,
               style: TextStyle(
@@ -236,5 +300,30 @@ class _GoalsSectionState extends State<GoalsSection> {
         },
       ),
     );
+  }
+}
+
+IconData _getCategoryIcon(String? categoryName) {
+  switch (categoryName?.toLowerCase() ?? 'default') {
+    case 'ahorro':
+      return Icons.savings;
+    case 'viaje':
+      return Icons.flight;
+    case 'emprendimiento':
+      return Icons.business;
+    case 'proyecto':
+      return Icons.assignment;
+    case 'caridad':
+      return Icons.volunteer_activism;
+    case 'logro':
+      return Icons.emoji_events;
+    case 'medio ambiente':
+      return Icons.eco;
+    case 'seguridad':
+      return Icons.security;
+    case 'estrella':
+      return Icons.star;
+    default:
+      return Icons.more_horiz;
   }
 }

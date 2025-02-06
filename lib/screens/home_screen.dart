@@ -1,4 +1,3 @@
-// home_screen.dart
 import 'package:flutter/material.dart';
 import '../services/api_service_gastos.dart';
 import '../services/api_service_info.dart';
@@ -11,6 +10,9 @@ import '../widgets/modal_gastos.dart';
 import '../widgets/modal_alertas.dart';
 import '../widgets/modal_add_goal.dart';
 import 'package:intl/intl.dart';
+import '../widgets/custom_fab.dart';
+import 'scanner_screen.dart';
+import 'voice_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -63,17 +65,14 @@ class _HomeScreenState extends State<HomeScreen> {
         throw Exception('Usuario no autenticado');
       }
 
-      // Obtener todos los gastos del usuario
       final List<Map<String, dynamic>> response =
           await ApiServiceGastos().getGastosByUserId(userId);
 
-      // Ordenar los gastos por fecha (asumiendo que hay un campo 'fecha' en cada gasto)
       final gastosOrdenados = response
           .where((gasto) => gasto['fecha'] != null)
           .toList()
         ..sort((a, b) => b['fecha'].compareTo(a['fecha']));
 
-      // Tomar los últimos 3 gastos
       final ultimosGastos = gastosOrdenados.take(3).toList();
 
       setState(() {
@@ -91,7 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _mostrarModalGastos(BuildContext context) async {
-    final token = await getToken(); // Obtén el token
+    final token = await getToken();
     if (token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('No se pudo obtener el token de autenticación')),
@@ -115,7 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
               }
             }
           },
-          token: token, // Pasa el token al modal
+          token: token,
         );
       },
     );
@@ -139,11 +138,6 @@ class _HomeScreenState extends State<HomeScreen> {
             final userId = await getUserId();
             if (userId != null) {
               try {
-                // Aquí puedes agregar la lógica para guardar el recordatorio en tu API
-                // Por ejemplo:
-                // await ApiServiceRecordatorios().agregarRecordatorio(userId, description, date);
-
-                // Muestra un mensaje de confirmación
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content:
@@ -160,6 +154,20 @@ class _HomeScreenState extends State<HomeScreen> {
           },
         );
       },
+    );
+  }
+
+  void _navegarAScanner(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ScannerScreen()),
+    );
+  }
+
+  void _navegarAVoz(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => VoiceScreen()),
     );
   }
 
@@ -256,12 +264,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _mostrarModalGastos(context);
-        },
-        backgroundColor: Colors.green,
-        child: Icon(Icons.add, color: Colors.white),
+      floatingActionButton: CustomFAB(
+        onScanPressed: () => _navegarAScanner(context),
+        onVoicePressed: () => _navegarAVoz(context),
       ),
     );
   }

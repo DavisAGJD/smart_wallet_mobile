@@ -20,19 +20,19 @@ class ScannerScreen extends StatelessWidget {
             Text(
               'Enfoca el ticket para escanear',
               style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey[700],
-                fontWeight: FontWeight.bold
-              ),
+                  fontSize: 18,
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 30),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15)
-              ),
+                  backgroundColor: Colors.green,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 30, vertical: 15)),
               onPressed: () {},
-              child: const Text('Iniciar escaneo', style: TextStyle(color: Colors.white)),
+              child: const Text('Iniciar escaneo',
+                  style: TextStyle(color: Colors.white)),
             )
           ],
         ),

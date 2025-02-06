@@ -51,7 +51,7 @@ dependencies:
   url_launcher: ^6.1.11
   syncfusion_flutter_charts: ^20.4.48
   percent_indicator: ^4.2.4
-  flutter_speed_dial: ^6.1.1
+  flutter_speed_dial: ^7.0.0
 
 
 dev_dependencies:

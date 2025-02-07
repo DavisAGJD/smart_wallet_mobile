@@ -41,7 +41,7 @@ Sigue estos pasos para instalar y ejecutar **Smart Wallet** en tu dispositivo:
 
 1. **Clona el repositorio**:
    ```bash
-   git clone https://github.com/tuusuario/smart-wallet.git
+   git clone https://github.com/DavisAGJD/smart_wallet_mobile.git
    ```
 2. **Navega al directorio del proyecto**:
    ```bash

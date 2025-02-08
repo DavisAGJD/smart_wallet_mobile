@@ -83,6 +83,35 @@ class BudgetIndicator extends StatelessWidget {
                   onPressed: () => onSectionChanged(1),
                 ),
               ),
+              SizedBox(width: 16),
+              Expanded(
+                child: OutlinedButton.icon(
+                  icon: Icon(Icons.flag,
+                      color: currentSection == 1
+                          ? Colors.greenAccent
+                          : Colors.white),
+                  label: Text('Alertas',
+                      style: TextStyle(
+                          color: currentSection == 0
+                              ? Colors.greenAccent
+                              : Colors.white)),
+                  style: OutlinedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 15),
+                    side: BorderSide(
+                        color: currentSection == 0
+                            ? Colors.greenAccent
+                            : Colors.white54),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                    backgroundColor: currentSection == 0
+                        ? Colors.green.withOpacity(0.1)
+                        : Colors.transparent,
+                  ),
+                  onPressed: () => onSectionChanged(
+                    2,
+                  ),
+                ),
+              ),
             ],
           ),
         ],

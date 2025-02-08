@@ -8,6 +8,7 @@ import '../models/category_data.dart';
 import '../utils/graphics_constants.dart';
 import '../widgets/user_expenses_section.dart';
 import '../widgets/goals_section.dart';
+import '../widgets/reminders_section.dart';
 
 class GraphicsScreen extends StatefulWidget {
   @override
@@ -106,7 +107,7 @@ class _GraphicsScreenState extends State<GraphicsScreen> {
 
       final expenses = await _apiService.obtenerGastosPorUsuario(userId, token);
 
-      if (expenses == null || expenses.isEmpty) {
+      if (expenses.isEmpty) {
         setState(() => isLoading = false);
         return;
       }
@@ -230,27 +231,26 @@ class _GraphicsScreenState extends State<GraphicsScreen> {
                           ),
                         ),
                       )
-                    : GoalsSection(
-                        key: ValueKey('goals_section'),
-                        isLoading: isLoading,
-                        onSave: (String nombre,
-                            String descripcion,
-                            double monto,
-                            DateTime fecha,
-                            String categoriaId,
-                            String categoriaNombre) {
-                          // Implementa la lógica de guardado aquí
-                          print('''
-                Guardando meta:
-                Nombre: $nombre
-                Descripción: $descripcion
-                Monto: $monto
-                Fecha: $fecha
-                ID Categoría: $categoriaId
-                Nombre Categoría: $categoriaNombre
-              ''');
-                        },
-                      ),
+                    : _currentSection == 1
+                        ? GoalsSection(
+                            key: ValueKey('goals_section'),
+                            isLoading: isLoading,
+                            onSave: (String nombre,
+                                String descripcion,
+                                double monto,
+                                DateTime fecha,
+                                String categoriaId,
+                                String categoriaNombre) {
+                              // Lógica de guardado...
+                            },
+                          )
+                        : ReminderSection(
+                            // Sección corregida
+                            key: ValueKey('reminders_section'),
+                            onDateSelected: (date) {
+                              // Lógica para selección de fecha
+                            },
+                          ),
               ),
             ),
           ],

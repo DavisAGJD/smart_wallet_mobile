@@ -57,12 +57,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Future<void> _markAsRead(String notificationId) async {
     try {
-      await _apiService.updateNotification(notificationId, {'leida': true});
+      await _apiService.updateNotification(
+          notificationId, {'leida': 1}); // Enviar 1 en lugar de true
       setState(() {
         final index =
             _notifications.indexWhere((n) => n['id'] == notificationId);
         if (index != -1) {
-          _notifications[index]['leida'] = true;
+          _notifications[index]['leida'] = 1; // Actualizar a 1
         }
       });
     } catch (e) {
@@ -103,7 +104,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           horizontal: 16, vertical: 8),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: notification['leida']
+                        color: (notification['leida'] as int) ==
+                                1 // Conversión a int
                             ? Colors.grey.shade200
                             : Colors.white,
                         borderRadius: BorderRadius.circular(12),
@@ -119,7 +121,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         children: [
                           Icon(
                             Icons.notifications,
-                            color: notification['leida']
+                            color: (notification['leida'] as int) ==
+                                    1 // Conversión a int
                                 ? Colors.grey
                                 : const Color(0xFF00DDA3),
                           ),
@@ -154,7 +157,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           IconButton(
                             icon: Icon(
                               Icons.check_circle,
-                              color: notification['leida']
+                              color: (notification['leida'] as int) ==
+                                      1 // Conversión a int
                                   ? Colors.grey
                                   : const Color(0xFF00DDA3),
                             ),

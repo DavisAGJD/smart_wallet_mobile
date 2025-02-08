@@ -133,26 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return RecordatoriosModal(
-          onSave: (description, date) async {
-            final userId = await getUserId();
-            if (userId != null) {
-              try {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content:
-                        Text('Recordatorio "$description" agregado (simulado)'),
-                  ),
-                );
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text('Error al guardar el recordatorio: $e')),
-                );
-              }
-            }
-          },
-        );
+        return RecordatoriosModal();
       },
     );
   }

@@ -497,17 +497,19 @@ class _ScannerScreenState extends State<ScannerScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Gasto registrado exitosamente.")),
         );
+        // Regresamos al HomeScreen indicando que se registró el gasto.
+        Navigator.pop(context, true);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Error al registrar el gasto.")),
         );
+        _resetScanner();
       }
     } catch (e) {
       debugPrint("Error registrando gasto: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Error al registrar el gasto.")),
       );
-    } finally {
       _resetScanner();
     }
   }

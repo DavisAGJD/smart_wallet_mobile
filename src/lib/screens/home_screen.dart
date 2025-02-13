@@ -142,7 +142,12 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => ScannerScreen()),
-    );
+    ).then((value) {
+      // Si el ScannerScreen regresa 'true', actualizamos los gastos.
+      if (value == true) {
+        _cargarUltimosGastos();
+      }
+    });
   }
 
   void _navegarAVoz(BuildContext context) {

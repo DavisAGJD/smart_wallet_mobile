@@ -86,7 +86,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               prefixIcon: Icon(Icons.email_outlined),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(color: Colors.grey[300]!),
+                                borderSide:
+                                    BorderSide(color: Colors.grey[300]!),
                               ),
                               filled: true,
                               fillColor: Colors.grey[50],
@@ -107,7 +108,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               prefixIcon: Icon(Icons.lock_outline),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(color: Colors.grey[300]!),
+                                borderSide:
+                                    BorderSide(color: Colors.grey[300]!),
                               ),
                               filled: true,
                               fillColor: Colors.grey[50],
@@ -161,7 +163,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 child: Divider(color: Colors.grey[400]),
                               ),
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 15),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 15),
                                 child: Text(
                                   'O continúa con',
                                   style: GoogleFonts.poppins(
@@ -205,7 +208,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 onPressed: () {
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder: (context) => SignUpScreen()),
+                                    MaterialPageRoute(
+                                        builder: (context) => SignUpScreen()),
                                   );
                                 },
                                 child: Text(

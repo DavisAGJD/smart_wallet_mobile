@@ -36,7 +36,7 @@ class _MainScreenState extends State<MainScreen> {
       if (_userId != null)
         NotificationsScreen(userId: _userId!)
       else
-        Center(child: CircularProgressIndicator()), // Mientras se carga el userId
+        Center(child: CircularProgressIndicator()),
       ProfileScreen(),
     ];
   }
@@ -56,41 +56,83 @@ class _MainScreenState extends State<MainScreen> {
         index: _selectedIndex,
         children: screens,
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: const Color(0xFF33404F),
-        selectedItemColor: const Color(0xFF228B22),
-        unselectedItemColor: Colors.white,
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Home',
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          border: Border(top: BorderSide(color: Colors.black12, width: 0.3)),
+        ),
+        child: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: const Color(0xFF33404F),
+          // Se usa un verde más sutil (ForestGreen)
+          selectedItemColor: const Color(0xFF228B22),
+          unselectedItemColor: Colors.white70,
+          currentIndex: _selectedIndex,
+          elevation: 8,
+          iconSize: 26,
+          selectedLabelStyle: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.3,
+            height: 1.8,
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart_outlined),
-            activeIcon: Icon(Icons.bar_chart),
-            label: 'Graphics',
+          unselectedLabelStyle: TextStyle(
+            fontSize: 11.5,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.3,
+            height: 1.8,
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.article_outlined),
-            activeIcon: Icon(Icons.article),
-            label: 'News',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications_outlined),
-            activeIcon: Icon(Icons.notifications),
-            label: 'Notifications',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outlined),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
+          onTap: _onItemTapped,
+          items: [
+            _buildNavItem(0, Icons.home_outlined, Icons.home_filled, 'Home'),
+            _buildNavItem(
+                1, Icons.bar_chart_outlined, Icons.bar_chart, 'Graphics'),
+            _buildNavItem(2, Icons.article_outlined, Icons.article, 'News'),
+            _buildNavItem(3, Icons.notifications_outlined, Icons.notifications,
+                'Notifications'),
+            _buildNavItem(4, Icons.person_outlined, Icons.person, 'Profile'),
+          ],
+        ),
       ),
+    );
+  }
+
+  BottomNavigationBarItem _buildNavItem(
+      int index, IconData icon, IconData activeIcon, String label) {
+    bool isSelected = _selectedIndex == index;
+
+    return BottomNavigationBarItem(
+      icon: AnimatedContainer(
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        padding: EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? const Color(0xFF228B22).withOpacity(0.15)
+              : Colors.transparent,
+          shape: BoxShape.circle,
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFF228B22).withOpacity(0.3),
+                    blurRadius: 6,
+                    offset: Offset(0, 2),
+                  )
+                ]
+              : [],
+        ),
+        child: AnimatedSwitcher(
+          duration: Duration(milliseconds: 300),
+          transitionBuilder: (child, animation) {
+            return ScaleTransition(scale: animation, child: child);
+          },
+          child: Icon(
+            isSelected ? activeIcon : icon,
+            key: ValueKey<bool>(isSelected),
+            size: isSelected ? 28 : 24,
+          ),
+        ),
+      ),
+      label: label,
     );
   }
 }

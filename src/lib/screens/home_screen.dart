@@ -143,7 +143,6 @@ class _HomeScreenState extends State<HomeScreen> {
       context,
       MaterialPageRoute(builder: (context) => ScannerScreen()),
     ).then((value) {
-      // Si el ScannerScreen regresa 'true', actualizamos los gastos.
       if (value == true) {
         _cargarUltimosGastos();
       }

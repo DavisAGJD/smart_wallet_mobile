@@ -3,7 +3,8 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
-import '../services/api_service_scaner.dart'; // Asegúrate de que la ruta sea la correcta
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import '../services/api_service_scaner.dart';
 
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({Key? key}) : super(key: key);
@@ -17,6 +18,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
   bool _isCameraInitialized = false;
   bool _isProcessing = false;
   XFile? _capturedImage;
+  bool _useFlash = false;
 
   @override
   void initState() {
@@ -30,42 +32,55 @@ class _ScannerScreenState extends State<ScannerScreen> {
     super.dispose();
   }
 
-  /// Inicializa la cámara solicitando permisos y configurando el controlador.
   Future<void> _initializeCamera() async {
     final status = await Permission.camera.request();
-    if (!status.isGranted) {
-      debugPrint("Permiso de cámara no concedido");
-      return;
-    }
+    if (!status.isGranted) return;
 
     try {
       final cameras = await availableCameras();
-      if (cameras.isEmpty) {
-        debugPrint("No hay cámaras disponibles");
-        return;
-      }
-      final camera = cameras.first;
+      if (cameras.isEmpty) return;
+
       _cameraController = CameraController(
-        camera,
-        ResolutionPreset.high,
+        cameras.first,
+        ResolutionPreset.max,
         enableAudio: false,
+        imageFormatGroup: ImageFormatGroup.jpeg,
       );
+
       await _cameraController!.initialize();
-      if (!mounted) return;
-      setState(() {
-        _isCameraInitialized = true;
-      });
+
+      if (mounted) {
+        setState(() {
+          _isCameraInitialized = true;
+        });
+      }
     } catch (e) {
-      debugPrint("Error al inicializar la cámara: $e");
+      debugPrint("Error inicializando cámara: $e");
     }
   }
 
-  /// Captura una imagen utilizando la cámara.
+  void _toggleUseFlash() {
+    setState(() {
+      _useFlash = !_useFlash;
+    });
+  }
+
   Future<void> _captureImage() async {
     if (_cameraController == null || !_cameraController!.value.isInitialized)
       return;
+
     try {
+      if (_useFlash) {
+        await _cameraController!.setFlashMode(FlashMode.torch);
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+
       final image = await _cameraController!.takePicture();
+
+      if (_useFlash) {
+        await _cameraController!.setFlashMode(FlashMode.off);
+      }
+
       setState(() {
         _capturedImage = image;
       });
@@ -77,23 +92,51 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
   }
 
-  /// Envía la imagen capturada al servidor y muestra un diálogo de confirmación.
+  // Función nueva: Compresión de imagen
+  Future<File?> _compressImage(File imageFile) async {
+    final compressedPath = "${imageFile.path}_compressed.jpg";
+
+    try {
+      final compressedImage = await FlutterImageCompress.compressAndGetFile(
+        imageFile.absolute.path,
+        compressedPath,
+        quality: 70,
+      );
+
+      if (compressedImage == null) {
+        debugPrint("Error al comprimir la imagen");
+        return null;
+      }
+
+      debugPrint("Imagen comprimida: ${compressedImage.path}");
+      return File(compressedImage.path);
+    } catch (e) {
+      debugPrint("Error en compresión: $e");
+      return null;
+    }
+  }
+
   Future<void> _uploadCapturedImage() async {
     if (_capturedImage == null) return;
+
     setState(() {
       _isProcessing = true;
     });
 
     try {
       final apiService = ApiServiceScaner();
-      final responseData =
-          await apiService.uploadImage(File(_capturedImage!.path));
+      final originalImage = File(_capturedImage!.path);
 
-      // Se espera que el back responda con 'detalles_scan' y 'transactionId'
+      // Compresión añadida
+      final compressedImage = await _compressImage(originalImage);
+      if (compressedImage == null) {
+        throw Exception("Error en compresión de imagen");
+      }
+
+      final responseData = await apiService.uploadImage(compressedImage);
       final detalles = responseData["data"]["detalles_scan"];
       final transactionId = responseData["data"]["transactionId"];
 
-      // Mostrar diálogo de confirmación con los datos reconocidos.
       final confirm = await showDialog<bool>(
         context: context,
         barrierDismissible: false,
@@ -142,7 +185,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
   }
 
-  /// Envía la confirmación del gasto al servidor.
   Future<void> _confirmExpense(String transactionId) async {
     setState(() {
       _isProcessing = true;
@@ -150,11 +192,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
     try {
       final apiService = ApiServiceScaner();
-      final responseData = await apiService.confirmExpense(transactionId);
+      await apiService.confirmExpense(transactionId);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Gasto confirmado exitosamente.")),
       );
-      // Regresa a la pantalla anterior o realiza otra acción según convenga.
       Navigator.pop(context, true);
     } catch (e) {
       debugPrint("Error confirmando gasto: $e");
@@ -168,7 +209,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
   }
 
-  /// Reinicia el estado del escáner para poder capturar una nueva imagen.
   void _resetScanner() {
     setState(() {
       _capturedImage = null;
@@ -198,11 +238,22 @@ class _ScannerScreenState extends State<ScannerScreen> {
     );
   }
 
-  /// Vista previa de la cámara con botón para capturar la imagen.
   Widget _buildCameraPreview() {
     return Stack(
       children: [
         CameraPreview(_cameraController!),
+        Positioned(
+          top: 16,
+          right: 16,
+          child: IconButton(
+            icon: Icon(
+              _useFlash ? Icons.flash_on : Icons.flash_off,
+              color: Colors.white,
+              size: 32,
+            ),
+            onPressed: _toggleUseFlash,
+          ),
+        ),
         Positioned(
           bottom: 32,
           left: 0,
@@ -223,7 +274,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
     );
   }
 
-  /// Vista previa de la imagen capturada con opciones para reintentar o procesar.
   Widget _buildCapturedImagePreview() {
     return Stack(
       children: [

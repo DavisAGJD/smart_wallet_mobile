@@ -76,3 +76,50 @@ class ApiServiceScaner {
     }
   }
 }
+
+class GastoService {
+  final Dio _dio = Dio();
+  static const String _baseUrl = 'https://backend-smartwallet.onrender.com/api';
+
+  Future<void> postGasto({
+    required double total,
+    required String tienda,
+  }) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      final usuarioId = await _getUserId();
+
+      if (token == null || usuarioId == null) {
+        throw Exception('Usuario no autenticado');
+      }
+
+      final data = {
+        'total': total,
+        'tienda': tienda,
+        'usuario_id': usuarioId,
+      };
+
+      final response = await _dio.post(
+        '$_baseUrl/gastos/gastoScan',
+        data: data,
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+          // Solo se considera exitosa la respuesta con status 201
+          validateStatus: (status) => status == 201,
+        ),
+      );
+
+      if (response.statusCode != 201) {
+        throw Exception('Error al registrar el gasto');
+      }
+    } on DioException catch (e) {
+      throw Exception(e.response?.data['error'] ?? e.message);
+    }
+  }
+
+  static Future<String?> _getUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('userId');
+  }
+}

@@ -141,7 +141,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _navegarAScanner(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => ScannerScreen()),
+      MaterialPageRoute(builder: (context) => AdvancedScannerScreen()),
     ).then((value) {
       if (value == true) {
         _cargarUltimosGastos();

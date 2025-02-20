@@ -26,8 +26,7 @@ class ApiServiceGastos {
         // Manejar el caso en el que la API devuelve un objeto { data: [...] }
         if (data is Map<String, dynamic> && data.containsKey('data')) {
           return (data['data'] as List)
-              .whereType<
-                  Map<String, dynamic>>() // Filtra solo los objetos correctos
+              .whereType<Map<String, dynamic>>()
               .toList();
         }
 
@@ -42,6 +41,29 @@ class ApiServiceGastos {
       }
     } catch (e) {
       throw Exception('Error al obtener los gastos: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> getGastosPaginadosByUserId(
+      String userId, int page, int limit) async {
+    try {
+      final token = await getToken();
+      if (token == null) throw Exception('Usuario no autenticado');
+
+      final response = await _dio.get(
+        'https://backend-smartwallet.onrender.com/api/gastos/user/$userId/paginados',
+        queryParameters: {'page': page, 'limit': limit},
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      if (response.statusCode == 200) {
+        return response.data; // Debe incluir 'data' y 'pagination'
+      } else {
+        throw Exception(
+            'Error al obtener los gastos paginados: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error al obtener los gastos paginados: $e');
     }
   }
 }
@@ -65,10 +87,9 @@ class CategoryService {
         // Extrae el ID y el nombre de cada categoría
         return data
             .map<Map<String, dynamic>>((category) => {
-                  'categoria_gasto_id': category['categoria_gasto_id']
-                      .toString(), // ID de la categoría
-                  'nombre_categoria': category['nombre_categoria']
-                      .toString(), // Nombre de la categoría
+                  'categoria_gasto_id':
+                      category['categoria_gasto_id'].toString(),
+                  'nombre_categoria': category['nombre_categoria'].toString(),
                 })
             .toList();
       } else {
@@ -97,7 +118,7 @@ class PostServiceGastos {
       final response = await _dio.post(
         'https://backend-smartwallet.onrender.com/api/gastos/create',
         data: {
-          'categoria_gasto_id': categoryId, // Envía el ID de la categoría
+          'categoria_gasto_id': categoryId,
           'monto': amount,
           'descripcion': description,
         },
@@ -108,6 +129,69 @@ class PostServiceGastos {
       } else {
         throw Exception(
           'Error al agregar el gasto: Código ${response.statusCode}, Mensaje: ${response.statusMessage}',
+        );
+      }
+    } on DioException catch (e) {
+      throw Exception('Error en la solicitud: ${e.message}');
+    }
+  }
+}
+
+class DeleteServiceGastos {
+  final Dio _dio = Dio();
+  final String token;
+
+  DeleteServiceGastos({required this.token}) {
+    _dio.options.headers = {
+      'Authorization': 'Bearer $token',
+    };
+  }
+
+  Future<void> deleteGasto(String gastoId) async {
+    try {
+      final response = await _dio.delete(
+        'https://backend-smartwallet.onrender.com/api/gastos/delete/$gastoId',
+      );
+      if (response.statusCode == 200) {
+        print('Gasto eliminado exitosamente: ${response.data}');
+      } else {
+        throw Exception(
+          'Error al eliminar el gasto: Código ${response.statusCode}, Mensaje: ${response.statusMessage}',
+        );
+      }
+    } on DioException catch (e) {
+      throw Exception('Error en la solicitud: ${e.message}');
+    }
+  }
+}
+
+class PutServiceGastos {
+  final Dio _dio = Dio();
+  final String token;
+
+  PutServiceGastos({required this.token}) {
+    _dio.options.headers = {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    };
+  }
+
+  Future<void> updateGasto(
+      String gastoId, int categoryId, double amount, String description) async {
+    try {
+      final response = await _dio.put(
+        'https://backend-smartwallet.onrender.com/api/gastos/update/$gastoId',
+        data: {
+          'categoria_gasto_id': categoryId,
+          'monto': amount,
+          'descripcion': description,
+        },
+      );
+      if (response.statusCode == 200) {
+        print('Gasto actualizado exitosamente: ${response.data}');
+      } else {
+        throw Exception(
+          'Error al actualizar el gasto: Código ${response.statusCode}, Mensaje: ${response.statusMessage}',
         );
       }
     } on DioException catch (e) {

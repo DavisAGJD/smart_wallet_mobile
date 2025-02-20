@@ -80,9 +80,11 @@ class UserExpensesSection extends StatelessWidget {
             pointColorMapper: (ChartData data, _) => data.color,
             dataLabelSettings: DataLabelSettings(
               isVisible: true,
-              labelPosition: ChartDataLabelPosition.outside,
+              // Se cambia a 'inside' para evitar el error de 'labelRect'
+              labelPosition: ChartDataLabelPosition.inside,
               textStyle: TextStyle(fontSize: 12),
-              builder: (dynamic data, _, __, ___, ____) {
+              builder: (dynamic data, dynamic point, dynamic series,
+                  int pointIndex, int seriesIndex) {
                 return Icon(
                   (data as ChartData).icon,
                   color: data.color,
@@ -126,17 +128,21 @@ class UserExpensesSection extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(data.name,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey[800],
-                        )),
-                    Text('$percentage%',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey[600],
-                        )),
+                    Text(
+                      data.name,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[800],
+                      ),
+                    ),
+                    Text(
+                      '$percentage%',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey[600],
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -154,7 +160,9 @@ class UserExpensesSection extends StatelessWidget {
       itemCount: categoriesData.length,
       itemBuilder: (context, index) {
         return CategoryItem(
-            categoryData: categoriesData[index], totalExpenses: totalExpenses);
+          categoryData: categoriesData[index],
+          totalExpenses: totalExpenses,
+        );
       },
     );
   }

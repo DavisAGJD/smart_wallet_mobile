@@ -46,10 +46,42 @@ class ApiServiceProfile {
       );
 
       if (response.statusCode != 200) {
-        throw Exception('Error al actualizar el perfil: ${response.statusCode}');
+        throw Exception(
+            'Error al actualizar el perfil: ${response.statusCode}');
       }
     } catch (e) {
       throw Exception('Error al actualizar el perfil: $e');
+    }
+  }
+
+  Future<String?> _getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('token');
+  }
+}
+
+class FinancesApiService {
+  final Dio _dio = Dio();
+
+  Future<Map<String, dynamic>> getGastosYSalario() async {
+    final token = await _getToken();
+    if (token == null) {
+      throw Exception('Usuario no autenticado');
+    }
+
+    final response = await _dio.get(
+      'https://backend-smartwallet.onrender.com/api/usuarios/gastoYSalario',
+      options: Options(
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      ),
+    );
+
+    if (response.statusCode == 200) {
+      return response.data;
+    } else {
+      throw Exception('Error al obtener datos: ${response.statusCode}');
     }
   }
 

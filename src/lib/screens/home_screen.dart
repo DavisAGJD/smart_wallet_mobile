@@ -13,6 +13,7 @@ import 'package:intl/intl.dart';
 import '../widgets/custom_fab.dart';
 import 'scanner_screen.dart';
 import 'voice_screen.dart';
+import '../widgets/drawer_section.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -160,6 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF228B22),
+      drawer: const CustomDrawer(), // Asegúrate de importar el widget
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(

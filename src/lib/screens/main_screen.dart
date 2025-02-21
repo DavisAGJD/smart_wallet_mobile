@@ -83,13 +83,13 @@ class _MainScreenState extends State<MainScreen> {
           ),
           onTap: _onItemTapped,
           items: [
-            _buildNavItem(0, Icons.home_outlined, Icons.home_filled, 'Home'),
+            _buildNavItem(0, Icons.home_outlined, Icons.home_filled, 'Inicio'),
             _buildNavItem(
-                1, Icons.bar_chart_outlined, Icons.bar_chart, 'Graphics'),
-            _buildNavItem(2, Icons.article_outlined, Icons.article, 'News'),
+                1, Icons.bar_chart_outlined, Icons.bar_chart, 'Graficas'),
+            _buildNavItem(2, Icons.article_outlined, Icons.article, 'Noticias'),
             _buildNavItem(3, Icons.notifications_outlined, Icons.notifications,
-                'Notifications'),
-            _buildNavItem(4, Icons.person_outlined, Icons.person, 'Profile'),
+                'Notificaciones'),
+            _buildNavItem(4, Icons.person_outlined, Icons.person, 'Perfil'),
           ],
         ),
       ),

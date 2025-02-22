@@ -5,7 +5,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 class ApiServiceLogin {
   final Dio _dio = Dio();
 
-  Future<void> loginUsuario(String email, String password) async {
+  Future<String> loginUsuario(String email, String password) async {
     try {
       final response = await _dio.post(
         'https://backend-smartwallet.onrender.com/api/usuarios/login',
@@ -36,6 +36,7 @@ class ApiServiceLogin {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', token);
         await prefs.setString('userId', userId.toString()); // Guarda el userId
+        return token;
       } else {
         throw Exception('Error al iniciar sesión: ${response.statusCode}');
       }

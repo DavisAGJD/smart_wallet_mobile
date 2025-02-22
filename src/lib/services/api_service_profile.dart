@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
 
 class ApiServiceProfile {
   final Dio _dio = Dio();
@@ -54,9 +55,75 @@ class ApiServiceProfile {
     }
   }
 
+  Future<void> updateUserImage({
+    required String usuarioId,
+    required File image,
+  }) async {
+    try {
+      final token = await _getToken();
+      if (token == null) {
+        throw Exception('Usuario no autenticado');
+      }
+
+      String fileName = image.path.split('/').last;
+      FormData formData = FormData.fromMap({
+        "image": await MultipartFile.fromFile(image.path, filename: fileName),
+      });
+
+      final response = await _dio.put(
+        'https://backend-smartwallet.onrender.com/api/usuarios/update-image/$usuarioId',
+        data: formData,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'multipart/form-data',
+          },
+        ),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception(
+            'Error al actualizar la imagen: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error al actualizar la imagen: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> getUserProfile({required String userId}) async {
+    try {
+      final token = await _getToken();
+      if (token == null) {
+        throw Exception('Usuario no autenticado');
+      }
+
+      final response = await _dio.get(
+        'https://backend-smartwallet.onrender.com/api/usuarios/info-user/$userId',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        return response.data;
+      } else {
+        throw Exception('Error al obtener datos: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error al obtener perfil: $e');
+    }
+  }
+
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('token');
+  }
+
+  Future<String?> getUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('userId');
   }
 }
 

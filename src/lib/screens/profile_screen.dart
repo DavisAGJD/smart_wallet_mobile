@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io'; // Para manejar archivos de imagen
+import 'dart:io';
+import '../services/api_service_profile.dart'; // Asegúrate de que la ruta sea correcta
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -22,18 +23,45 @@ class _ProfileScreenState extends State<ProfileScreen>
   late TabController _tabController;
 
   bool _isLoading = false;
-  File? _imageFile; // Variable para almacenar la imagen seleccionada
+  File? _imageFile; // Imagen seleccionada localmente
+  String? _profileImageUrl; // URL de la imagen guardada en la BD
 
   final Color primaryGreen = const Color(0xFF228B22);
   final Color accentColor = const Color(0xFF32CD32);
+
+  // Instancia del servicio API
+  final ApiServiceProfile apiService = ApiServiceProfile();
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _loadUserProfile(); // Cargar información del usuario al iniciar la pantalla
   }
 
-  // Método para seleccionar una imagen desde la galería
+  // Método para cargar la información del usuario desde el backend
+  Future<void> _loadUserProfile() async {
+    final userId = await apiService.getUserId();
+    if (userId == null || userId.isEmpty) {
+      print("Error: no se encontró el ID del usuario en el token.");
+      return;
+    }
+    try {
+      final data = await apiService.getUserProfile(userId: userId);
+      setState(() {
+        // Asumiendo que en la respuesta la URL de la imagen se encuentra en la llave "image"
+        _profileImageUrl = data['image'];
+        // Prepopulamos los campos de texto con los datos actuales del usuario
+        _nameController.text = data['nombre_usuario'] ?? '';
+        _usernameController.text = data['username'] ?? '';
+        _emailController.text = data['email'] ?? '';
+      });
+    } catch (e) {
+      print("Error al cargar perfil: $e");
+    }
+  }
+
+  // Seleccionar imagen desde la galería
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
@@ -42,6 +70,80 @@ class _ProfileScreenState extends State<ProfileScreen>
       setState(() {
         _imageFile = File(pickedFile.path);
       });
+    }
+  }
+
+  // Actualizar información personal y la imagen (si se seleccionó)
+  Future<void> _updatePersonalInfo() async {
+    if (_personalFormKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+      try {
+        final userId = await apiService.getUserId();
+        if (userId == null || userId.isEmpty) {
+          throw Exception("No se encontró el ID de usuario.");
+        }
+
+        // Se envían solo los campos que se hayan modificado (no vacíos)
+        await apiService.updateUser(
+          usuarioId: userId,
+          name: _nameController.text,
+          username: _usernameController.text,
+        );
+
+        if (_imageFile != null) {
+          await apiService.updateUserImage(
+              usuarioId: userId, image: _imageFile!);
+          // Actualizar la URL de la imagen luego de actualizarla en el backend
+          await _loadUserProfile();
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Perfil actualizado exitosamente')),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  // Actualizar configuración de cuenta
+  Future<void> _updateAccountSettings() async {
+    if (_accountFormKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+      try {
+        final userId = await apiService.getUserId();
+        if (userId == null || userId.isEmpty) {
+          throw Exception("No se encontró el ID de usuario.");
+        }
+
+        await apiService.updateUser(
+          usuarioId: userId,
+          email: _emailController.text,
+          password: _passwordController.text,
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Configuración de cuenta actualizada')),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -87,15 +189,19 @@ class _ProfileScreenState extends State<ProfileScreen>
                         CircleAvatar(
                           radius: 50,
                           backgroundColor: Colors.white,
-                          backgroundImage:
-                              _imageFile != null ? FileImage(_imageFile!) : null,
-                          child: _imageFile == null
-                              ? Icon(
-                                  Icons.person,
-                                  size: 60,
-                                  color: primaryGreen,
-                                )
-                              : null,
+                          backgroundImage: _imageFile != null
+                              ? FileImage(_imageFile!)
+                              : (_profileImageUrl != null
+                                  ? NetworkImage(_profileImageUrl!)
+                                  : null) as ImageProvider<Object>?,
+                          child:
+                              (_imageFile == null && _profileImageUrl == null)
+                                  ? Icon(
+                                      Icons.person,
+                                      size: 60,
+                                      color: primaryGreen,
+                                    )
+                                  : null,
                         ),
                         Positioned(
                           bottom: 0,
@@ -230,7 +336,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _isLoading ? null : () {}, // Aquí puedes agregar la lógica de guardar
+                onPressed: _isLoading ? null : _updatePersonalInfo,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryGreen,
                   foregroundColor: Colors.white,
@@ -310,7 +416,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                       obscureText: true,
                       decoration: InputDecoration(
                         labelText: 'Nueva Contraseña',
-                        prefixIcon: Icon(Icons.lock_outline, color: primaryGreen),
+                        prefixIcon:
+                            Icon(Icons.lock_outline, color: primaryGreen),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -328,7 +435,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _isLoading ? null : () {}, // Aquí puedes agregar la lógica de guardar
+                onPressed: _isLoading ? null : _updateAccountSettings,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryGreen,
                   foregroundColor: Colors.white,

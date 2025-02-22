@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service_login.dart';
-import 'main_screen.dart';
 import '../widgets/social_login_button.dart';
 import 'singup_screen.dart';
 
@@ -19,15 +19,18 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
       try {
-        await _apiService.loginUsuario(
+        // La función loginUsuario ahora retorna el token
+        String token = await _apiService.loginUsuario(
           _emailController.text,
           _passwordController.text,
         );
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => MainScreen()),
-        );
+        // Aunque en el servicio ya guardas el token, aquí lo aseguramos
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', token);
+
+        // Navega a MainScreen, que contiene la navbar
+        Navigator.pushReplacementNamed(context, '/main');
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error al iniciar sesión: $e')),
@@ -159,9 +162,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: 30),
                           Row(
                             children: [
-                              Expanded(
-                                child: Divider(color: Colors.grey[400]),
-                              ),
+                              Expanded(child: Divider(color: Colors.grey[400])),
                               Padding(
                                 padding:
                                     const EdgeInsets.symmetric(horizontal: 15),
@@ -173,9 +174,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 ),
                               ),
-                              Expanded(
-                                child: Divider(color: Colors.grey[400]),
-                              ),
+                              Expanded(child: Divider(color: Colors.grey[400])),
                             ],
                           ),
                           const SizedBox(height: 25),

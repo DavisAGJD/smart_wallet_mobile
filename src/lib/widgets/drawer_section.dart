@@ -1,6 +1,7 @@
 // widgets/custom_drawer.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../screens/first_screen.dart'; // Importa el onboarding
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({super.key});
@@ -9,7 +10,12 @@ class CustomDrawer extends StatelessWidget {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
     await prefs.remove('userId');
-    Navigator.pushReplacementNamed(context, '/login');
+    // Navega al onboarding y elimina todas las rutas previas
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => FirstScreen()),
+      (route) => false,
+    );
   }
 
   @override

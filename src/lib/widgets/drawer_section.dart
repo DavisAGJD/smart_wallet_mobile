@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/first_screen.dart'; // Importa el onboarding
+import '../screens/reportes_screen.dart';
+import '../screens/recompensas_screen.dart';
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({super.key});
@@ -73,22 +75,35 @@ class CustomDrawer extends StatelessWidget {
   Widget _buildMenuItems(BuildContext context) {
     return Column(
       children: [
+        // Reportes
         ListTile(
-          leading: const Icon(Icons.home),
-          title: const Text('Inicio'),
+          leading: const Icon(Icons.assignment),
+          title: const Text('Reportes'),
           onTap: () {
             Navigator.pop(context);
-            Navigator.pushReplacementNamed(context, '/home');
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ReportesScreen(),
+              ),
+            );
           },
         ),
+        // Recompensas
         ListTile(
-          leading: const Icon(Icons.bar_chart),
-          title: const Text('Estadísticas'),
+          leading: const Icon(Icons.card_giftcard),
+          title: const Text('Recompensas'),
           onTap: () {
             Navigator.pop(context);
-            Navigator.pushNamed(context, '/stats');
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const RecompensasScreen(),
+              ),
+            );
           },
         ),
+        // Metas
         ListTile(
           leading: const Icon(Icons.savings),
           title: const Text('Metas'),
@@ -97,6 +112,7 @@ class CustomDrawer extends StatelessWidget {
             Navigator.pushNamed(context, '/goals');
           },
         ),
+        // Historial
         ListTile(
           leading: const Icon(Icons.history),
           title: const Text('Historial'),
@@ -106,6 +122,7 @@ class CustomDrawer extends StatelessWidget {
           },
         ),
         const Divider(),
+        // Configuración
         ListTile(
           leading: const Icon(Icons.settings),
           title: const Text('Configuración'),
@@ -114,6 +131,7 @@ class CustomDrawer extends StatelessWidget {
             Navigator.pushNamed(context, '/settings');
           },
         ),
+        // Cerrar sesión
         ListTile(
           leading: const Icon(Icons.exit_to_app),
           title: const Text('Cerrar Sesión'),

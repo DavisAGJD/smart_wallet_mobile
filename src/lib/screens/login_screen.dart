@@ -41,6 +41,20 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Se obtienen las dimensiones de la pantalla
+    final Size size = MediaQuery.of(context).size;
+    final double screenWidth = size.width;
+    final double screenHeight = size.height;
+
+    // Valores proporcionales basados en la pantalla
+    final double containerPadding = screenWidth * 0.06; // Ej: ~24 en un ancho de 400
+    final double logoHeight = screenHeight * 0.15; // Ajusta según necesidad
+    final double verticalSpacing = screenHeight * 0.04;
+    final double titleFontSize = screenWidth * 0.06;
+    final double subtitleFontSize = screenWidth * 0.035;
+    final double buttonFontSize = screenWidth * 0.04;
+    final double dividerHorizontalPadding = screenWidth * 0.04;
+
     return Scaffold(
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -50,7 +64,8 @@ class _LoginScreenState extends State<LoginScreen> {
               child: IntrinsicHeight(
                 child: Center(
                   child: Container(
-                    padding: const EdgeInsets.all(24),
+                    padding: EdgeInsets.all(containerPadding),
+                    // Se limita el ancho máximo para pantallas grandes
                     constraints: BoxConstraints(maxWidth: 400),
                     child: Form(
                       key: _formKey,
@@ -58,29 +73,33 @@ class _LoginScreenState extends State<LoginScreen> {
                         mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
+                          // Logo
                           Image.asset(
                             'assets/logo.png',
-                            height: 100,
+                            height: logoHeight,
                             fit: BoxFit.contain,
                           ),
-                          const SizedBox(height: 40),
+                          SizedBox(height: verticalSpacing),
+                          // Título
                           Text(
                             'Bienvenido de vuelta',
                             style: GoogleFonts.poppins(
-                              fontSize: 24,
+                              fontSize: titleFontSize,
                               fontWeight: FontWeight.w600,
                               color: Colors.black87,
                             ),
                           ),
-                          const SizedBox(height: 10),
+                          SizedBox(height: screenHeight * 0.01),
+                          // Subtítulo
                           Text(
                             'Inicia sesión para continuar',
                             style: GoogleFonts.poppins(
-                              fontSize: 14,
+                              fontSize: subtitleFontSize,
                               color: Colors.grey[600],
                             ),
                           ),
-                          const SizedBox(height: 30),
+                          SizedBox(height: verticalSpacing),
+                          // Campo de email
                           TextFormField(
                             controller: _emailController,
                             decoration: InputDecoration(
@@ -89,8 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               prefixIcon: Icon(Icons.email_outlined),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide:
-                                    BorderSide(color: Colors.grey[300]!),
+                                borderSide: BorderSide(color: Colors.grey[300]!),
                               ),
                               filled: true,
                               fillColor: Colors.grey[50],
@@ -102,7 +120,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               return null;
                             },
                           ),
-                          const SizedBox(height: 20),
+                          SizedBox(height: verticalSpacing * 0.5),
+                          // Campo de contraseña
                           TextFormField(
                             controller: _passwordController,
                             obscureText: true,
@@ -111,8 +130,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               prefixIcon: Icon(Icons.lock_outline),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide:
-                                    BorderSide(color: Colors.grey[300]!),
+                                borderSide: BorderSide(color: Colors.grey[300]!),
                               ),
                               filled: true,
                               fillColor: Colors.grey[50],
@@ -124,7 +142,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               return null;
                             },
                           ),
-                          const SizedBox(height: 20),
+                          SizedBox(height: verticalSpacing * 0.5),
+                          // Botón para "Olvidaste tu contraseña"
                           Align(
                             alignment: Alignment.centerRight,
                             child: TextButton(
@@ -133,18 +152,20 @@ class _LoginScreenState extends State<LoginScreen> {
                                 '¿Olvidaste tu contraseña?',
                                 style: GoogleFonts.poppins(
                                   color: Colors.green,
-                                  fontSize: 14,
+                                  fontSize: subtitleFontSize,
                                 ),
                               ),
                             ),
                           ),
-                          const SizedBox(height: 20),
+                          SizedBox(height: verticalSpacing * 0.5),
+                          // Botón de iniciar sesión
                           ElevatedButton(
                             onPressed: _login,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.green,
                               foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(vertical: 16),
+                              padding: EdgeInsets.symmetric(
+                                  vertical: screenHeight * 0.02),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
@@ -154,30 +175,34 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: Text(
                               'Iniciar sesión',
                               style: GoogleFonts.poppins(
-                                fontSize: 16,
+                                fontSize: buttonFontSize,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
-                          const SizedBox(height: 30),
+                          SizedBox(height: verticalSpacing),
+                          // Línea divisoria con texto
                           Row(
                             children: [
-                              Expanded(child: Divider(color: Colors.grey[400])),
+                              Expanded(
+                                  child: Divider(color: Colors.grey[400])),
                               Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 15),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: dividerHorizontalPadding),
                                 child: Text(
                                   'O continúa con',
                                   style: GoogleFonts.poppins(
                                     color: Colors.grey[600],
-                                    fontSize: 14,
+                                    fontSize: subtitleFontSize,
                                   ),
                                 ),
                               ),
-                              Expanded(child: Divider(color: Colors.grey[400])),
+                              Expanded(
+                                  child: Divider(color: Colors.grey[400])),
                             ],
                           ),
-                          const SizedBox(height: 25),
+                          SizedBox(height: verticalSpacing * 0.8),
+                          // Botones de login social
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -185,21 +210,22 @@ class _LoginScreenState extends State<LoginScreen> {
                                 logoPath: 'assets/google_logo.png',
                                 onTap: () => print('Login con Google'),
                               ),
-                              const SizedBox(width: 25),
+                              SizedBox(width: screenWidth * 0.06),
                               SocialLoginButton(
                                 logoPath: 'assets/facebook_logo.png',
                                 onTap: () => print('Login con Facebook'),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 30),
+                          SizedBox(height: verticalSpacing),
+                          // Opción para registrarse
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
                                 '¿No tienes cuenta? ',
                                 style: GoogleFonts.poppins(
-                                  fontSize: 14,
+                                  fontSize: subtitleFontSize,
                                   color: Colors.grey[700],
                                 ),
                               ),

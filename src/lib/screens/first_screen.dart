@@ -7,8 +7,10 @@ class FirstScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Obtiene el alto de la pantalla para ajustar el tamaño de la imagen
-    final double screenHeight = MediaQuery.of(context).size.height;
+    // Obtén las dimensiones de la pantalla
+    final Size size = MediaQuery.of(context).size;
+    final double screenHeight = size.height;
+    final double screenWidth = size.width;
 
     return Scaffold(
       body: Container(
@@ -23,84 +25,98 @@ class FirstScreen extends StatelessWidget {
           ),
         ),
         child: SafeArea(
+          // Usamos un Padding proporcional al ancho de la pantalla
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Sección superior: indicadores y logo
-                Column(
-                  children: [
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        StepIndicator(color: Colors.green),
-                        const SizedBox(width: 8),
-                        StepIndicator(color: Colors.green.shade200),
-                        const SizedBox(width: 8),
-                        StepIndicator(color: Colors.green.shade200),
-                      ],
-                    ),
-                    const SizedBox(height: 40),
-                    Image.asset(
-                      'assets/coins.png',
-                      height: screenHeight * 0.3,
-                    ),
-                  ],
+            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.08),
+            // Si el contenido puede exceder en pantallas muy pequeñas, es buena idea envolverlo en un SingleChildScrollView
+            child: SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: screenHeight - MediaQuery.of(context).padding.vertical,
                 ),
-                // Sección intermedia: textos
-                Column(
-                  children: [
-                    Text(
-                      '¡Dale un giro a tus finanzas personales!',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green.shade800,
+                child: IntrinsicHeight(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Sección superior: indicadores y logo
+                      Column(
+                        children: [
+                          SizedBox(height: screenHeight * 0.02),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              StepIndicator(color: Colors.green),
+                              SizedBox(width: screenWidth * 0.02),
+                              StepIndicator(color: Colors.green.shade200),
+                              SizedBox(width: screenWidth * 0.02),
+                              StepIndicator(color: Colors.green.shade200),
+                            ],
+                          ),
+                          SizedBox(height: screenHeight * 0.04),
+                          Image.asset(
+                            'assets/coins.png',
+                            height: screenHeight * 0.3,
+                          ),
+                        ],
                       ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 15),
-                    Text(
-                      'Empieza hoy tu camino hacia la estabilidad financiera',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.grey.shade800,
+                      // Sección intermedia: textos
+                      Column(
+                        children: [
+                          Text(
+                            '¡Dale un giro a tus finanzas personales!',
+                            style: TextStyle(
+                              // Tamaño de fuente relativo al ancho de la pantalla
+                              fontSize: screenWidth * 0.06,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green.shade800,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: screenHeight * 0.02),
+                          Text(
+                            'Empieza hoy tu camino hacia la estabilidad financiera',
+                            style: TextStyle(
+                              fontSize: screenWidth * 0.045,
+                              color: Colors.grey.shade800,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-                // Sección inferior: botón de navegación
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 20),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const SecondScreen()),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 15, horizontal: 40),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25),
+                      // Sección inferior: botón de navegación
+                      Padding(
+                        padding: EdgeInsets.only(bottom: screenHeight * 0.02),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const SecondScreen()),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            padding: EdgeInsets.symmetric(
+                              vertical: screenHeight * 0.02,
+                              horizontal: screenWidth * 0.1,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                          ),
+                          child: Text(
+                            'Siguiente',
+                            style: TextStyle(
+                              fontSize: screenWidth * 0.045,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                    child: const Text(
-                      'Siguiente',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.white,
-                      ),
-                    ),
+                    ],
                   ),
                 ),
-              ],
+              ),
             ),
           ),
         ),

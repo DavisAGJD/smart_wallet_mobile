@@ -6,10 +6,11 @@ class ExpenseSummary extends StatefulWidget {
   const ExpenseSummary({Key? key}) : super(key: key);
 
   @override
-  _ExpenseSummaryState createState() => _ExpenseSummaryState();
+  // Renombramos la clase de estado para que sea pública:
+  ExpenseSummaryState createState() => ExpenseSummaryState();
 }
 
-class _ExpenseSummaryState extends State<ExpenseSummary> {
+class ExpenseSummaryState extends State<ExpenseSummary> {
   double? ingresos;
   double? totalGastos;
   bool isLoading = true;
@@ -21,6 +22,7 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
     fetchFinances();
   }
 
+  // Este método se hace público para poder invocarlo desde HomeScreen.
   Future<void> fetchFinances() async {
     try {
       final apiService = FinancesApiService();
@@ -72,13 +74,11 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        // Al usar un Column dentro de un Center, se centrará horizontalmente
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Título
-            Text(
+            const Text(
               'Gastos',
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -87,10 +87,7 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-
             const SizedBox(height: 8),
-
-            // Monto Gastado (Row centrada)
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -110,10 +107,7 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                 ),
               ],
             ),
-
             const SizedBox(height: 12),
-
-            // Barra de progreso
             LinearPercentIndicator(
               width: MediaQuery.of(context).size.width * 0.9,
               lineHeight: 12,
@@ -122,22 +116,16 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
               progressColor: Colors.redAccent,
               barRadius: const Radius.circular(8),
             ),
-
             const SizedBox(height: 8),
-
-            // Porcentaje textual
             Text(
               '$porcentajeFormateado% de tu presupuesto',
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Colors.white70,
                 fontSize: 14,
               ),
             ),
-
             const SizedBox(height: 8),
-
-            // Presupuesto y Gastado (Row centrada)
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

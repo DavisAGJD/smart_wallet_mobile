@@ -61,6 +61,7 @@ dependencies:
   flutter_image_compress: ^2.4.0
   string_similarity: ^2.0.0
   path_drawing: ^1.0.1
+  tflite_flutter: ^0.11.0
 
 
 dev_dependencies:
@@ -100,6 +101,10 @@ flutter:
     - 'assets/google_logo.png'
     - 'assets/facebook_logo.png'
   #  - 'assets/twitter_logo.png'
+    - assets/models/expense_classifier_seq9.tflite
+    - assets/labels/vocab.txt
+    - assets/labels/tokenizer_config.json
+    - assets/labels/special_tokens_map.json
 
   # To add assets to your application, add an assets section, like this:
   # assets:

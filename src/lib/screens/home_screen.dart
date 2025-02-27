@@ -25,6 +25,10 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = false;
   String _userName = '';
 
+  // GlobalKey para poder refrescar ExpenseSummary usando la clase pública ExpenseSummaryState
+  final GlobalKey<ExpenseSummaryState> expenseSummaryKey =
+      GlobalKey<ExpenseSummaryState>();
+
   @override
   void initState() {
     super.initState();
@@ -146,6 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ).then((value) {
       if (value == true) {
         _cargarUltimosGastos();
+        expenseSummaryKey.currentState?.fetchFinances();
       }
     });
   }
@@ -154,21 +159,27 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => VoiceScreen()),
-    );
+    ).then((value) {
+      if (value == true) {
+        _cargarUltimosGastos();
+        expenseSummaryKey.currentState?.fetchFinances();
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF228B22),
-      drawer: const CustomDrawer(), // Asegúrate de importar el widget
+      drawer: const CustomDrawer(),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               HeaderSection(userName: _userName),
-              const ExpenseSummary(),
+              // Se pasa el GlobalKey a ExpenseSummary
+              ExpenseSummary(key: expenseSummaryKey),
               Container(
                 decoration: const BoxDecoration(
                   color: Colors.white,
@@ -227,9 +238,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 20),
                     _isLoading
-                        ? CircularProgressIndicator()
+                        ? const CircularProgressIndicator()
                         : _ultimosGastos.isEmpty
-                            ? Text('No hay gastos recientes')
+                            ? const Text('No hay gastos recientes')
                             : Column(
                                 children: _ultimosGastos.map((gasto) {
                                   return TransactionItem(

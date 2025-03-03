@@ -1,1 +1,1 @@
-assets/models/* filter=lfs diff=lfs merge=lfs -text
+assets/models/expense_classifier_seq.tflite filter=lfs diff=lfs merge=lfs -text

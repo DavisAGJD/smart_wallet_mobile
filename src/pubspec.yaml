@@ -101,7 +101,7 @@ flutter:
     - 'assets/google_logo.png'
     - 'assets/facebook_logo.png'
   #  - 'assets/twitter_logo.png'
-    - assets/models/expense_classifier_seq9.tflite
+    - assets/models/expense_classifier_seq.tflite
     - assets/labels/vocab.txt
     - assets/labels/tokenizer_config.json
     - assets/labels/special_tokens_map.json

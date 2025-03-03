@@ -40,8 +40,9 @@ class TFLiteService {
       await _loadVocabulary();
       await _loadSpecialTokens(); // Carga de special_tokens_map.json
       await _loadTokenizerConfig(); // Carga de tokenizer_config.json
+      // Asegúrate de que la ruta coincida con el nombre del modelo generado
       _interpreter = await Interpreter.fromAsset(
-        'assets/models/expense_classifier_seq9.tflite',
+        'assets/models/expense_classifier_seq.tflite',
         options: InterpreterOptions()..threads = 4,
       );
       _interpreter.allocateTensors();
@@ -213,8 +214,7 @@ class TFLiteService {
     return probabilities;
   }
 
-  /// Extrae una descripción concisa utilizando varios patrones:
-  /// intenta capturar expresiones como "gaste en un", "compré una", "en", "por", etc.
+  /// Extrae una descripción concisa utilizando varios patrones.
   String _extractDescription(String text, String predictedCategory) {
     List<RegExp> patterns = [
       RegExp(
@@ -257,8 +257,11 @@ class TFLiteService {
       print('🔍 Attention Mask: $attentionMask');
       print('🔍 Token Type IDs: $tokenTypeIds');
 
-      var attentionMaskBuffer = [attentionMask];
+      // IMPORTANTE: El orden de entrada debe coincidir con el del modelo convertido.
+      // Según la depuración, el primer tensor es "attention_mask",
+      // el segundo "input_ids" y el tercero "token_type_ids".
       var inputIdsBuffer = [inputIds];
+      var attentionMaskBuffer = [attentionMask];
       var tokenTypeIdsBuffer = [tokenTypeIds];
       var outputBuffer = [List.filled(categories.length, 0.0)];
 
@@ -297,6 +300,30 @@ class TFLiteService {
       print('❌ Error en la predicción: $e');
       rethrow;
     }
+  }
+
+  /// Analiza múltiples gastos en un solo input dividiendo el texto.
+  /// Analiza múltiples gastos en un solo input dividiendo el texto.
+  List<Map<String, dynamic>> predictMultipleExpenses(String text) {
+    List<Map<String, dynamic>> results = [];
+    // Utilizamos una expresión regular que captura segmentos que comienzan con "gasté", "pagué" o "compré"
+    // y que continúan hasta el inicio del siguiente gasto o el final del texto.
+    RegExp exp = RegExp(
+      r'((?:gast[eé]|pagu[eé]|compr[eé]).*?)(?=(?:gast[eé]|pagu[eé]|compr[eé])|$)',
+      caseSensitive: false,
+      dotAll: true,
+    );
+    Iterable<RegExpMatch> matches = exp.allMatches(text);
+    List<String> segments = matches
+        .map((match) => match.group(1)!.trim())
+        .where(
+            (segment) => segment.isNotEmpty && RegExp(r'\d').hasMatch(segment))
+        .toList();
+
+    for (String segment in segments) {
+      results.add(predict(segment));
+    }
+    return results;
   }
 
   /// Imprime información de los tensores para depuración.

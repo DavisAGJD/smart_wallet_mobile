@@ -15,7 +15,6 @@ class _VoiceScreenState extends State<VoiceScreen> {
   bool _isListening = false;
   String _transcription = '';
   final TFLiteService _tfliteService = TFLiteService();
-  Map<String, dynamic> _lastResult = {};
 
   @override
   void initState() {
@@ -56,11 +55,14 @@ class _VoiceScreenState extends State<VoiceScreen> {
       setState(() => _isListening = false);
 
       if (_transcription.isNotEmpty) {
-        final result = _tfliteService.predict(_transcription);
-        setState(() => _lastResult = result);
-        final confirm = await _showResultDialog(result);
-        if (confirm == true) {
-          Navigator.pop(context, true);
+        // Analiza múltiples gastos en el input de voz
+        final results = _tfliteService.predictMultipleExpenses(_transcription);
+        if (results.isNotEmpty) {
+          bool? confirm = await _showExpensesListDialog(results);
+          if (confirm == true) {
+            await _insertExpenses(results);
+            Navigator.pop(context, true);
+          }
         }
       }
     } catch (e) {
@@ -68,13 +70,13 @@ class _VoiceScreenState extends State<VoiceScreen> {
     }
   }
 
-  // Mapea la etiqueta predicha a un ID de categoría (ejemplo usando índice + 1).
+  /// Mapea la etiqueta predicha a un ID de categoría (ejemplo usando índice + 1).
   int _mapCategoryLabelToId(String label) {
     int index = _tfliteService.categories.indexOf(label);
     return (index >= 0) ? index + 1 : 0;
   }
 
-  // Registra el gasto usando PostServiceGastos.
+  /// Registra un gasto usando PostServiceGastos.
   Future<void> _confirmExpense(Map<String, dynamic> result) async {
     try {
       int categoryId = _mapCategoryLabelToId(result['category']['label']);
@@ -88,67 +90,110 @@ class _VoiceScreenState extends State<VoiceScreen> {
       }
       PostServiceGastos postService = PostServiceGastos(token: token);
       await postService.addGasto(categoryId, amount, description);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(
-                'Gasto de \$${amount.toStringAsFixed(2)} registrado exitosamente')),
-      );
     } catch (e) {
       _showErrorDialog('Error registrando el gasto: $e');
     }
   }
 
-  // Muestra el diálogo de confirmación con opciones.
-  Future<bool?> _showResultDialog(Map<String, dynamic> result) {
+  /// Muestra un modal con la lista de gastos detectados para que el usuario los revise.
+  /// Muestra un modal con la lista de gastos detectados para que el usuario los revise.
+  Future<bool?> _showExpensesListDialog(List<Map<String, dynamic>> expenses) {
     return showDialog<bool>(
       context: context,
       builder: (context) {
-        // Responsividad: ajusta tamaños según MediaQuery.
         final media = MediaQuery.of(context);
-        return AlertDialog(
-          title: const Text('Resultado del análisis'),
-          content: SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: media.size.width * 0.8),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Categoría: ${result['category']['label']}',
-                      style: TextStyle(fontSize: media.size.width * 0.045)),
-                  const SizedBox(height: 8),
-                  Text('Confianza: ${result['category']['confidence']}',
-                      style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: media.size.width * 0.04)),
-                  const SizedBox(height: 8),
-                  Text('Monto: \$${result['amount']}',
-                      style: TextStyle(
-                          fontSize: media.size.width * 0.05,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green)),
-                  const SizedBox(height: 8),
-                  Text('Descripción: ${result['description']}',
-                      style: TextStyle(fontSize: media.size.width * 0.045)),
-                ],
-              ),
+        return Dialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
+          elevation: 16,
+          child: Container(
+            padding: const EdgeInsets.all(16.0),
+            constraints: BoxConstraints(
+              maxHeight: media.size.height * 0.6,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Gastos detectados',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 10),
+                const Divider(thickness: 1, color: Colors.grey),
+                Expanded(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: expenses.length,
+                    separatorBuilder: (context, index) =>
+                        const Divider(height: 1, color: Colors.grey),
+                    itemBuilder: (context, index) {
+                      final expense = expenses[index];
+                      return ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        leading:
+                            const Icon(Icons.receipt_long, color: Colors.green),
+                        title: Text(
+                          expense['category']['label'],
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        subtitle: Text(
+                          "Monto: \$${expense['amount']}\nDescripción: ${expense['description']}",
+                        ),
+                        trailing: Text(
+                          expense['category']['confidence'],
+                          style: const TextStyle(
+                              color: Colors.blue, fontWeight: FontWeight.bold),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Cancelar',
+                          style: TextStyle(fontSize: 16)),
+                    ),
+                    const SizedBox(width: 10),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 10),
+                      ),
+                      child: const Text('Confirmar',
+                          style: TextStyle(fontSize: 16)),
+                    )
+                  ],
+                )
+              ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Deshacer'),
-            ),
-            TextButton(
-              onPressed: () async {
-                await _confirmExpense(result);
-                Navigator.pop(context, true);
-              },
-              child: const Text('Confirmar'),
-            ),
-          ],
         );
       },
+    );
+  }
+
+  /// Inserta los gastos uno a uno sin mostrar una barra de progreso.
+  Future<void> _insertExpenses(List<Map<String, dynamic>> expenses) async {
+    for (var expense in expenses) {
+      await _confirmExpense(expense);
+      // Permite ceder el control a la UI si es necesario.
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content:
+            Text("Todos los gastos fueron insertados (${expenses.length})"),
+      ),
     );
   }
 
@@ -216,15 +261,20 @@ class _VoiceScreenState extends State<VoiceScreen> {
               ),
               SizedBox(height: media.size.height * 0.03),
               ElevatedButton.icon(
-                icon: Icon(_isListening ? Icons.stop : Icons.mic_none,
-                    size: media.size.width * 0.06),
-                label: Text(_isListening ? 'Detener' : 'Iniciar',
-                    style: TextStyle(fontSize: media.size.width * 0.05)),
+                icon: Icon(
+                  _isListening ? Icons.stop : Icons.mic_none,
+                  size: media.size.width * 0.06,
+                ),
+                label: Text(
+                  _isListening ? 'Detener' : 'Iniciar',
+                  style: TextStyle(fontSize: media.size.width * 0.05),
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
                   padding: EdgeInsets.symmetric(
-                      horizontal: media.size.width * 0.08,
-                      vertical: media.size.height * 0.02),
+                    horizontal: media.size.width * 0.08,
+                    vertical: media.size.height * 0.02,
+                  ),
                 ),
                 onPressed: _isListening ? _stopListening : _startListening,
               ),

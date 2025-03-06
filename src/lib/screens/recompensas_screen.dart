@@ -72,12 +72,14 @@ class _RecompensasScreenState extends State<RecompensasScreen> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
-      if (token == null) {
-        throw Exception('No se encontró token. Inicia sesión nuevamente.');
+      final userId = prefs.getString('userId');
+
+      if (token == null || userId == null) {
+        throw Exception('No se encontró token o userId en el dispositivo');
       }
 
       final api = ApiServiceRecompensas();
-      await api.canjearRecompensaPremium(token);
+      await api.canjearRecompensaPremium(token, userId);
 
       // Descontamos 100 puntos localmente
       setState(() => _puntosUsuario -= 100);

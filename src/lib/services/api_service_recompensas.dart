@@ -22,10 +22,10 @@ class ApiServiceRecompensas {
   }
 
   /// Canjea la recompensa Premium enviando un body vacío
-  Future<void> canjearRecompensaPremium(String token) async {
+  Future<void> canjearRecompensaPremium(String token, String userId) async {
     try {
       final response = await _dio.post(
-        '$_baseUrl/usuarios/puntos/canjear',
+        '$_baseUrl/usuarios/suscripcion/$userId',
         data: {}, // Enviar body vacío
         options: Options(
           headers: {'Authorization': 'Bearer $token'},

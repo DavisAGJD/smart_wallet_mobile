@@ -1,12 +1,48 @@
 // widgets/custom_drawer.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../screens/first_screen.dart'; // Importa el onboarding
+import '../screens/first_screen.dart';
 import '../screens/reportes_screen.dart';
 import '../screens/recompensas_screen.dart';
+import '../services/api_service_profile.dart';
 
-class CustomDrawer extends StatelessWidget {
-  const CustomDrawer({super.key});
+class CustomDrawer extends StatefulWidget {
+  const CustomDrawer({Key? key}) : super(key: key);
+
+  @override
+  _CustomDrawerState createState() => _CustomDrawerState();
+}
+
+class _CustomDrawerState extends State<CustomDrawer> {
+  String _userName = '';
+  String _userEmail = '';
+  String? _profileImageUrl;
+  final ApiServiceProfile apiService = ApiServiceProfile();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile();
+  }
+
+  // Método para cargar la información del usuario desde el backend
+  Future<void> _loadUserProfile() async {
+    final userId = await apiService.getUserId();
+    if (userId == null || userId.isEmpty) {
+      print("Error: no se encontró el ID del usuario.");
+      return;
+    }
+    try {
+      final data = await apiService.getUserProfile(userId: userId);
+      setState(() {
+        _userName = data['nombre_usuario'] ?? '';
+        _userEmail = data['email'] ?? '';
+        _profileImageUrl = data['image'];
+      });
+    } catch (e) {
+      print("Error al cargar perfil: $e");
+    }
+  }
 
   Future<void> _logout(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
@@ -15,7 +51,7 @@ class CustomDrawer extends StatelessWidget {
     // Navega al onboarding y elimina todas las rutas previas
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (context) => FirstScreen()),
+      MaterialPageRoute(builder: (context) => const FirstScreen()),
       (route) => false,
     );
   }
@@ -45,23 +81,28 @@ class CustomDrawer extends StatelessWidget {
           CircleAvatar(
             backgroundColor: Colors.white,
             radius: 30,
-            child: Icon(
-              Icons.person,
-              size: 40,
-              color: Colors.green[800],
-            ),
+            backgroundImage: _profileImageUrl != null
+                ? NetworkImage(_profileImageUrl!)
+                : null,
+            child: _profileImageUrl == null
+                ? Icon(
+                    Icons.person,
+                    size: 40,
+                    color: Colors.green[800],
+                  )
+                : null,
           ),
           const SizedBox(height: 10),
-          const Text(
-            'Juan Pérez',
-            style: TextStyle(
+          Text(
+            _userName.isNotEmpty ? _userName : 'Usuario',
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
           Text(
-            'juan@example.com',
+            _userEmail.isNotEmpty ? _userEmail : 'email@example.com',
             style: TextStyle(
               color: Colors.white.withOpacity(0.8),
               fontSize: 14,

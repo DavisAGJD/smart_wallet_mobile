@@ -126,38 +126,134 @@ class _AdvancedScannerScreenState extends State<AdvancedScannerScreen>
   }
 
   Future<void> _showConfirmationDialog() async {
+    final TextEditingController storeController =
+        TextEditingController(text: _detectedStore);
+    bool isEditing = false;
+
     final confirm = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Text("Confirmar Gasto"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text("Tienda: $_detectedStore"),
-            Text(
-                "Total: ${_detectedTotal?.toStringAsFixed(2) ?? 'No detectado'}"),
-            const SizedBox(height: 20),
-            if (_detectedTotal == null)
-              const Text("¿Deseas reintentar el escaneo?",
-                  style: TextStyle(color: Colors.orange)),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text("Reintentar"),
-          ),
-          if (_detectedTotal != null)
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
+      builder: (context) {
+        final media = MediaQuery.of(context);
+        return StatefulBuilder(
+          builder: (context, setState) => Dialog(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20.0)),
+            elevation: 16,
+            child: Container(
+              padding: const EdgeInsets.all(16.0),
+              constraints: BoxConstraints(
+                maxHeight: media.size.height * 0.6,
               ),
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text("Confirmar"),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Confirmar Gasto',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  const Divider(thickness: 1, color: Colors.grey),
+                  const SizedBox(height: 10),
+                  // Fila para mostrar el nombre de la tienda con botón de edición
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'Tienda:',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: isEditing
+                            ? TextField(
+                                controller: storeController,
+                                decoration: const InputDecoration(
+                                  hintText: "Ingrese tienda",
+                                ),
+                              )
+                            : Text(
+                                storeController.text.isEmpty
+                                    ? 'Desconocida'
+                                    : storeController.text,
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          isEditing ? Icons.check : Icons.edit,
+                          color: Colors.green,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            isEditing = !isEditing;
+                          });
+                        },
+                      )
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  // Fila para mostrar el total
+                  Row(
+                    children: [
+                      const Text(
+                        'Total:',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        _detectedTotal != null
+                            ? _detectedTotal!.toStringAsFixed(2)
+                            : 'No detectado',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  if (_detectedTotal == null)
+                    const Text(
+                      "¿Deseas reintentar el escaneo?",
+                      style: TextStyle(color: Colors.orange),
+                    ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Reintentar',
+                            style: TextStyle(fontSize: 16)),
+                      ),
+                      const SizedBox(width: 10),
+                      if (_detectedTotal != null)
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 10),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _detectedStore = storeController.text;
+                            });
+                            Navigator.pop(context, true);
+                          },
+                          child: const Text('Confirmar',
+                              style: TextStyle(fontSize: 16)),
+                        ),
+                    ],
+                  )
+                ],
+              ),
             ),
-        ],
-      ),
+          ),
+        );
+      },
     );
 
     confirm == true ? _sendExpenseToBackend() : _resetScanner();

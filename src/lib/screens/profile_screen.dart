@@ -13,9 +13,12 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen>
     with SingleTickerProviderStateMixin {
   final _nameController = TextEditingController();
-  final _usernameController = TextEditingController();
+  final _incomeController = TextEditingController();
   final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+
+  // Controladores para campos de solo lectura
+  final _subscriptionController = TextEditingController();
+  final _pointsController = TextEditingController();
 
   final _personalFormKey = GlobalKey<FormState>();
   final _accountFormKey = GlobalKey<FormState>();
@@ -31,6 +34,9 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   // Instancia del servicio API
   final ApiServiceProfile apiService = ApiServiceProfile();
+
+  // Controlador para la contraseña en configuración de cuenta
+  final _passwordController = TextEditingController();
 
   @override
   void initState() {
@@ -49,11 +55,14 @@ class _ProfileScreenState extends State<ProfileScreen>
     try {
       final data = await apiService.getUserProfile(userId: userId);
       setState(() {
-        // Asumiendo que en la respuesta la URL de la imagen se encuentra en la llave "image"
+        // Se asume que la API retorna las llaves: image, nombre_completo (o nombre_usuario),
+        // tipo_suscripcion, ingresos y puntos.
         _profileImageUrl = data['image'];
-        // Prepopulamos los campos de texto con los datos actuales del usuario
-        _nameController.text = data['nombre_usuario'] ?? '';
-        _usernameController.text = data['username'] ?? '';
+        _nameController.text =
+            data['nombre_completo'] ?? data['nombre_usuario'] ?? '';
+        _subscriptionController.text = data['tipo_suscripcion'] ?? 'Gratis';
+        _incomeController.text = data['ingresos']?.toString() ?? '0';
+        _pointsController.text = (data['puntos'] ?? 0).toString();
         _emailController.text = data['email'] ?? '';
       });
     } catch (e) {
@@ -73,7 +82,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     }
   }
 
-  // Actualizar información personal y la imagen (si se seleccionó)
+  // Actualizar información personal, incluyendo la imagen e ingresos
   Future<void> _updatePersonalInfo() async {
     if (_personalFormKey.currentState!.validate()) {
       setState(() {
@@ -85,11 +94,11 @@ class _ProfileScreenState extends State<ProfileScreen>
           throw Exception("No se encontró el ID de usuario.");
         }
 
-        // Se envían solo los campos que se hayan modificado (no vacíos)
+        // Se envían solo los campos que se hayan modificado, incluyendo ingresos.
         await apiService.updateUser(
           usuarioId: userId,
           name: _nameController.text,
-          username: _usernameController.text,
+          income: _incomeController.text,
         );
 
         if (_imageFile != null) {
@@ -151,8 +160,10 @@ class _ProfileScreenState extends State<ProfileScreen>
   void dispose() {
     _tabController.dispose();
     _nameController.dispose();
-    _usernameController.dispose();
+    _incomeController.dispose();
     _emailController.dispose();
+    _subscriptionController.dispose();
+    _pointsController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -172,10 +183,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               background: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      primaryGreen,
-                      accentColor,
-                    ],
+                    colors: [primaryGreen, accentColor],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -196,11 +204,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                                   : null) as ImageProvider<Object>?,
                           child:
                               (_imageFile == null && _profileImageUrl == null)
-                                  ? Icon(
-                                      Icons.person,
-                                      size: 60,
-                                      color: primaryGreen,
-                                    )
+                                  ? Icon(Icons.person,
+                                      size: 60, color: primaryGreen)
                                   : null,
                         ),
                         Positioned(
@@ -286,12 +291,12 @@ class _ProfileScreenState extends State<ProfileScreen>
             Card(
               elevation: 4,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
+                  borderRadius: BorderRadius.circular(15)),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
+                    // Campo para Nombre Completo (editable)
                     TextFormField(
                       controller: _nameController,
                       decoration: InputDecoration(
@@ -313,12 +318,12 @@ class _ProfileScreenState extends State<ProfileScreen>
                       },
                     ),
                     const SizedBox(height: 16),
+                    // Campo de solo lectura para Tipo de Suscripción
                     TextFormField(
-                      controller: _usernameController,
+                      controller: _subscriptionController,
                       decoration: InputDecoration(
-                        labelText: 'Nombre de Usuario',
-                        prefixIcon:
-                            Icon(Icons.alternate_email, color: primaryGreen),
+                        labelText: 'Tipo de Suscripción',
+                        prefixIcon: Icon(Icons.star, color: primaryGreen),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -327,6 +332,51 @@ class _ProfileScreenState extends State<ProfileScreen>
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
+                      readOnly: true,
+                    ),
+                    const SizedBox(height: 16),
+                    // Campo editable para Ingresos
+                    TextFormField(
+                      controller: _incomeController,
+                      decoration: InputDecoration(
+                        labelText: 'Ingresos',
+                        prefixIcon:
+                            Icon(Icons.attach_money, color: primaryGreen),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: primaryGreen),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor ingresa tus ingresos';
+                        }
+                        if (double.tryParse(value) == null) {
+                          return 'Ingresa un valor numérico válido';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    // Campo de solo lectura para Puntos
+                    TextFormField(
+                      controller: _pointsController,
+                      decoration: InputDecoration(
+                        labelText: 'Puntos',
+                        prefixIcon: Icon(Icons.score, color: primaryGreen),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: primaryGreen),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      readOnly: true,
                     ),
                   ],
                 ),
@@ -342,16 +392,13 @@ class _ProfileScreenState extends State<ProfileScreen>
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
+                      borderRadius: BorderRadius.circular(15)),
                 ),
                 child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
-                        'Guardar Cambios',
+                    : const Text('Guardar Cambios',
                         style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
+                            fontSize: 18, fontWeight: FontWeight.bold)),
               ),
             ),
           ],
@@ -380,8 +427,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             Card(
               elevation: 4,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
+                  borderRadius: BorderRadius.circular(15)),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -441,16 +487,13 @@ class _ProfileScreenState extends State<ProfileScreen>
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
+                      borderRadius: BorderRadius.circular(15)),
                 ),
                 child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
-                        'Guardar Cambios',
+                    : const Text('Guardar Cambios',
                         style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
+                            fontSize: 18, fontWeight: FontWeight.bold)),
               ),
             ),
           ],

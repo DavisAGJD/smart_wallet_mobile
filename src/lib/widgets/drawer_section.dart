@@ -1,4 +1,3 @@
-// widgets/custom_drawer.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/first_screen.dart';
@@ -25,7 +24,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
     _loadUserProfile();
   }
 
-  // Método para cargar la información del usuario desde el backend
+  // Cargar la información real del usuario desde el backend
   Future<void> _loadUserProfile() async {
     final userId = await apiService.getUserId();
     if (userId == null || userId.isEmpty) {

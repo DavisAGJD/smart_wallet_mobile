@@ -34,7 +34,7 @@ class CustomFAB extends StatelessWidget {
               const Icon(Icons.document_scanner, color: Colors.white, size: 26),
           backgroundColor: const Color(0xFF228B22),
           onTap: onScanPressed,
-          label: 'Escanear documento',
+          label: 'Escanear Ticket',
           labelStyle: const TextStyle(
             color: Colors.white,
             fontSize: 16,

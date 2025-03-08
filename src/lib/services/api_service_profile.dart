@@ -11,6 +11,7 @@ class ApiServiceProfile {
     String? username,
     String? email,
     String? password,
+    String? income,
   }) async {
     try {
       final token = await _getToken();
@@ -30,6 +31,9 @@ class ApiServiceProfile {
       }
       if (password != null && password.isNotEmpty) {
         updateData['password_usuario'] = password;
+      }
+      if (income != null && income.isNotEmpty) {
+        updateData['ingresos'] = income;
       }
 
       if (updateData.isEmpty) {

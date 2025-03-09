@@ -12,7 +12,7 @@ class ApiServiceArticles {
       }
 
       final response = await _dio.get(
-        'https://backend-smartwallet.onrender.com/api/articles',
+        'https://smartwallet-g4hadr0j.b4a.run/api/articles',
         options: Options(
           headers: {
             'Authorization': 'Bearer $token',

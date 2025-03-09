@@ -12,7 +12,7 @@ class ApiServiceGastos {
       }
 
       final response = await _dio.get(
-        'https://backend-smartwallet.onrender.com/api/gastos/user/$userId',
+        'https://smartwallet-g4hadr0j.b4a.run//api/gastos/user/$userId',
         options: Options(
           headers: {
             'Authorization': 'Bearer $token',
@@ -51,7 +51,7 @@ class ApiServiceGastos {
       if (token == null) throw Exception('Usuario no autenticado');
 
       final response = await _dio.get(
-        'https://backend-smartwallet.onrender.com/api/gastos/user/$userId/paginados',
+        'https://smartwallet-g4hadr0j.b4a.run/api/gastos/user/$userId/paginados',
         queryParameters: {'page': page, 'limit': limit},
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
@@ -79,7 +79,7 @@ class CategoryService {
   Future<List<Map<String, dynamic>>> fetchCategories() async {
     try {
       final response = await _dio.get(
-        'https://backend-smartwallet.onrender.com/api/categoriasGastos',
+        'https://smartwallet-g4hadr0j.b4a.run/api/categoriasGastos',
       );
 
       if (response.statusCode == 200) {
@@ -116,7 +116,7 @@ class PostServiceGastos {
       int categoryId, double amount, String description) async {
     try {
       final response = await _dio.post(
-        'https://backend-smartwallet.onrender.com/api/gastos/create',
+        'https://smartwallet-g4hadr0j.b4a.run/api/gastos/create',
         data: {
           'categoria_gasto_id': categoryId,
           'monto': amount,
@@ -150,7 +150,7 @@ class DeleteServiceGastos {
   Future<void> deleteGasto(String gastoId) async {
     try {
       final response = await _dio.delete(
-        'https://backend-smartwallet.onrender.com/api/gastos/delete/$gastoId',
+        'https://smartwallet-g4hadr0j.b4a.run/api/gastos/delete/$gastoId',
       );
       if (response.statusCode == 200) {
         print('Gasto eliminado exitosamente: ${response.data}');
@@ -180,7 +180,7 @@ class PutServiceGastos {
       String gastoId, int categoryId, double amount, String description) async {
     try {
       final response = await _dio.put(
-        'https://backend-smartwallet.onrender.com/api/gastos/update/$gastoId',
+        'https://smartwallet-g4hadr0j.b4a.run/api/gastos/update/$gastoId',
         data: {
           'categoria_gasto_id': categoryId,
           'monto': amount,
@@ -207,7 +207,7 @@ class ApiServiceGastosGrafica {
       String usuarioId, String token) async {
     try {
       final response = await _dio.get(
-        'https://backend-smartwallet.onrender.com/api/gastos/user/$usuarioId',
+        'https://smartwallet-g4hadr0j.b4a.run/api/gastos/user/$usuarioId',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
       return List<Map<String, dynamic>>.from(response.data);

@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiServiceGetCategoryMetas {
   final Dio _dio = Dio();
-  static const String _baseUrl = 'https://backend-smartwallet.onrender.com/api';
+  static const String _baseUrl = 'https://smartwallet-g4hadr0j.b4a.run/api';
 
   Future<List<Map<String, dynamic>>> getCategoriasMetas() async {
     try {
@@ -39,7 +39,7 @@ class ApiServiceGetCategoryMetas {
 
 class ApiServiceMetas {
   final Dio _dio = Dio();
-  static const String _baseUrl = 'https://backend-smartwallet.onrender.com/api';
+  static const String _baseUrl = 'https://smartwallet-g4hadr0j.b4a.run/api';
 
   Future<void> crearMeta(Map<String, dynamic> metaData) async {
     try {
@@ -66,7 +66,7 @@ class ApiServiceMetas {
 
 class ApiServiceUpdateAmount {
   final Dio _dio = Dio();
-  static const String _baseUrl = 'https://backend-smartwallet.onrender.com/api';
+  static const String _baseUrl = 'https://smartwallet-g4hadr0j.b4a.run/api';
 
   Future<void> updateAmount(int metaId, double montoAdicional) async {
     try {
@@ -103,7 +103,7 @@ class ApiServiceGetMetas {
   final Dio _dio = Dio();
   final ApiServiceGetCategoryMetas _categoryService =
       ApiServiceGetCategoryMetas();
-  static const String _baseUrl = 'https://backend-smartwallet.onrender.com/api';
+  static const String _baseUrl = 'https://smartwallet-g4hadr0j.b4a.run/api';
 
   Future<List<Meta>> getMetasWithCategories() async {
     try {

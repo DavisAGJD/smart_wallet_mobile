@@ -5,7 +5,7 @@ import 'package:jwt_decoder/jwt_decoder.dart'; // Asegúrate de importar jwt_dec
 class ApiServiceInfo {
   final Dio _dio = Dio();
   final String baseUrl =
-      'https://backend-smartwallet.onrender.com/api/usuarios';
+      'https://smartwallet-g4hadr0j.b4a.run/api/usuarios';
 
   // Método para obtener el token desde SharedPreferences
   Future<String?> _getToken() async {

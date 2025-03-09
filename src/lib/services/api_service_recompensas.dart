@@ -4,7 +4,7 @@ import 'package:dio/dio.dart';
 class ApiServiceRecompensas {
   final Dio _dio = Dio();
   // Base URL de tu API (sin la parte específica de usuarios)
-  final String _baseUrl = 'https://backend-smartwallet.onrender.com/api';
+  final String _baseUrl = 'https://smartwallet-g4hadr0j.b4a.run/api';
 
   /// Obtiene los puntos del usuario
   Future<int> getPuntosUsuario(String token, String userId) async {

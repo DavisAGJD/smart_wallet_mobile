@@ -11,7 +11,7 @@ class ApiServiceSignup {
   }) async {
     try {
       final response = await _dio.post(
-        'https://backend-smartwallet.onrender.com/api/usuarios/register', // Asegúrate de que esta URL sea correcta
+        'https://smartwallet-g4hadr0j.b4a.run/api/usuarios/register', // Asegúrate de que esta URL sea correcta
         data: {
           'nombre_usuario': nombreUsuario,
           'email': email,

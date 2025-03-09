@@ -41,7 +41,7 @@ class ApiServiceProfile {
       }
 
       final response = await _dio.put(
-        'https://backend-smartwallet.onrender.com/api/usuarios/update/$usuarioId',
+        'https://smartwallet-g4hadr0j.b4a.run/api/usuarios/update/$usuarioId',
         data: updateData,
         options: Options(
           headers: {
@@ -75,7 +75,7 @@ class ApiServiceProfile {
       });
 
       final response = await _dio.put(
-        'https://backend-smartwallet.onrender.com/api/usuarios/update-image/$usuarioId',
+        'https://smartwallet-g4hadr0j.b4a.run/api/usuarios/update-image/$usuarioId',
         data: formData,
         options: Options(
           headers: {
@@ -102,7 +102,7 @@ class ApiServiceProfile {
       }
 
       final response = await _dio.get(
-        'https://backend-smartwallet.onrender.com/api/usuarios/info-user/$userId',
+        'https://smartwallet-g4hadr0j.b4a.run/api/usuarios/info-user/$userId',
         options: Options(
           headers: {
             'Authorization': 'Bearer $token',
@@ -141,7 +141,7 @@ class FinancesApiService {
     }
 
     final response = await _dio.get(
-      'https://backend-smartwallet.onrender.com/api/usuarios/gastoYSalario',
+      'https://smartwallet-g4hadr0j.b4a.run/api/usuarios/gastoYSalario',
       options: Options(
         headers: {
           'Authorization': 'Bearer $token',

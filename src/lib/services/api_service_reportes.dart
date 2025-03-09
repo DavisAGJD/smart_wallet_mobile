@@ -4,7 +4,7 @@ import 'package:dio/dio.dart';
 class ApiServiceReportes {
   final Dio _dio = Dio();
   final String _baseUrl =
-      'https://backend-smartwallet.onrender.com/api/reportes';
+      'https://smartwallet-g4hadr0j.b4a.run/api/reportes';
 
   /// Crea un nuevo reporte.
   /// [token]: Token de autenticación.

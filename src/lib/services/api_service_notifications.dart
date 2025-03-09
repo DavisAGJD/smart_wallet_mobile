@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiServiceNotifications {
   final Dio _dio = Dio();
-  final String baseUrl = 'https://backend-smartwallet.onrender.com/api/notificaciones';
+  final String baseUrl = 'https://smartwallet-g4hadr0j.b4a.run/api/notificaciones';
 
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();

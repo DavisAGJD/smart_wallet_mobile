@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiServiceRecordatorios {
   final Dio _dio = Dio();
-  static const String _baseUrl = 'https://backend-smartwallet.onrender.com/api';
+  static const String _baseUrl = 'https://smartwallet-g4hadr0j.b4a.run/api';
 
   Future<void> crearRecordatorio(Map<String, dynamic> data) async {
     try {
@@ -43,7 +43,7 @@ class ApiServiceRecordatorios {
 
 class ApiServicesGetRecordatorios {
   final Dio _dio = Dio();
-  static const String _baseUrl = 'https://backend-smartwallet.onrender.com/api';
+  static const String _baseUrl = 'https://smartwallet-g4hadr0j.b4a.run/api';
 
   Future<List<Recordatorio>> getRecordatorio() async {
     try {

@@ -11,7 +11,7 @@ Future<String?> getToken() async {
 
 class ApiServiceScaner {
   final Dio _dio = Dio();
-  final String _baseUrl = 'https://backend-smartwallet.onrender.com/api';
+  final String _baseUrl = 'https://smartwallet-g4hadr0j.b4a.run/api';
 
   /// Envía la imagen capturada al endpoint         `/scan`.
   /// Retorna la respuesta del servidor en formato Map.
@@ -79,7 +79,7 @@ class ApiServiceScaner {
 
 class GastoService {
   final Dio _dio = Dio();
-  static const String _baseUrl = 'https://backend-smartwallet.onrender.com/api';
+  static const String _baseUrl = 'https://smartwallet-g4hadr0j.b4a.run/api';
 
   Future<void> postGasto({
     required double total,

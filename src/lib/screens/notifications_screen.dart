@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
 import '../services/api_service_notifications.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -57,13 +58,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Future<void> _markAsRead(String notificationId) async {
     try {
-      await _apiService.updateNotification(
-          notificationId, {'leida': 1}); // Enviar 1 en lugar de true
+      await _apiService.updateNotification(notificationId, {'leida': 1});
       setState(() {
         final index =
             _notifications.indexWhere((n) => n['id'] == notificationId);
         if (index != -1) {
-          _notifications[index]['leida'] = 1; // Actualizar a 1
+          _notifications[index]['leida'] = 1;
         }
       });
     } catch (e) {
@@ -76,38 +76,52 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Tamaño de pantalla para adaptar márgenes y fuentes
+    final size = MediaQuery.of(context).size;
+    final horizontalPadding = size.width * 0.04;
+    final verticalPadding = size.height * 0.01;
+    final titleFontSize = size.width * 0.05;
+    final subtitleFontSize = size.width * 0.04;
+    final containerPadding = size.width * 0.04;
+    final marginVertical = size.height * 0.015;
+    final marginHorizontal = size.width * 0.04;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notificaciones',
-            style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white)),
+        title: Text(
+          'Notificaciones',
+          style: TextStyle(
+            fontSize: size.width * 0.06,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
         centerTitle: true,
         backgroundColor: const Color(0xFF228B22),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _notifications.isEmpty
-              ? const Center(
+              ? Center(
                   child: Text(
                     'No tienes notificaciones',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                    style: TextStyle(
+                        fontSize: size.width * 0.045, color: Colors.grey),
                   ),
                 )
               : ListView.builder(
                   itemCount: _notifications.length,
                   itemBuilder: (context, index) {
                     final notification = _notifications[index];
+                    final isRead = (notification['leida'] as int) == 1;
                     return Container(
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      padding: const EdgeInsets.all(16),
+                      margin: EdgeInsets.symmetric(
+                        horizontal: marginHorizontal,
+                        vertical: marginVertical,
+                      ),
+                      padding: EdgeInsets.all(containerPadding),
                       decoration: BoxDecoration(
-                        color: (notification['leida'] as int) ==
-                                1 // Conversión a int
-                            ? Colors.grey.shade200
-                            : Colors.white,
+                        color: isRead ? Colors.grey.shade200 : Colors.white,
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
@@ -121,28 +135,27 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         children: [
                           Icon(
                             Icons.notifications,
-                            color: (notification['leida'] as int) ==
-                                    1 // Conversión a int
-                                ? Colors.grey
-                                : const Color(0xFF00DDA3),
+                            color:
+                                isRead ? Colors.grey : const Color(0xFF00DDA3),
+                            size: size.width * 0.06,
                           ),
-                          const SizedBox(width: 16),
+                          SizedBox(width: horizontalPadding),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   notification['mensaje'] ?? 'Sin mensaje',
-                                  style: const TextStyle(
-                                    fontSize: 16,
+                                  style: TextStyle(
+                                    fontSize: titleFontSize,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                const SizedBox(height: 8),
+                                SizedBox(height: verticalPadding),
                                 Text(
                                   notification['fecha'] ?? 'Sin fecha',
-                                  style: const TextStyle(
-                                    fontSize: 14,
+                                  style: TextStyle(
+                                    fontSize: subtitleFontSize,
                                     color: Colors.grey,
                                   ),
                                 ),
@@ -150,17 +163,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
+                            icon: Icon(Icons.delete,
+                                color: Colors.red, size: size.width * 0.06),
                             onPressed: () =>
                                 _deleteNotification(notification['id']),
                           ),
                           IconButton(
                             icon: Icon(
                               Icons.check_circle,
-                              color: (notification['leida'] as int) ==
-                                      1 // Conversión a int
+                              color: isRead
                                   ? Colors.grey
                                   : const Color(0xFF00DDA3),
+                              size: size.width * 0.06,
                             ),
                             onPressed: () => _markAsRead(notification['id']),
                           ),

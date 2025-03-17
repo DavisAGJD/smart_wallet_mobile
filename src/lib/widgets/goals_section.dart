@@ -20,6 +20,7 @@ class GoalsSection extends StatefulWidget {
 class _GoalsSectionState extends State<GoalsSection> {
   late Future<List<Meta>> _metasFuture;
   final ApiServiceGetMetas _metaService = ApiServiceGetMetas();
+  final ApiServiceMetas _apiServiceMetas = ApiServiceMetas();
 
   @override
   void initState() {
@@ -31,6 +32,24 @@ class _GoalsSectionState extends State<GoalsSection> {
     setState(() {
       _metasFuture = _metaService.getMetasWithCategories();
     });
+  }
+
+  /// Verifica y elimina automáticamente las metas completadas.
+  Future<void> _checkAndDeleteCompletedMetas(List<Meta> metas) async {
+    final completedMetas =
+        metas.where((meta) => meta.montoActual >= meta.montoObjetivo).toList();
+    if (completedMetas.isNotEmpty) {
+      for (var meta in completedMetas) {
+        try {
+          await _apiServiceMetas.deleteMeta(meta.metaId);
+          debugPrint("Meta ${meta.metaId} eliminada automáticamente");
+        } catch (e) {
+          debugPrint("Error al eliminar la meta ${meta.metaId}: $e");
+        }
+      }
+      // Recargar las metas después de eliminar las completadas.
+      _loadMetas();
+    }
   }
 
   @override
@@ -52,16 +71,31 @@ class _GoalsSectionState extends State<GoalsSection> {
                     child: CircularProgressIndicator(color: Color(0xFF228B22)),
                   );
                 }
-
+                if (snapshot.hasError) {
+                  return _buildErrorState();
+                }
                 final metas = snapshot.data ?? [];
+
+                // Si existe alguna meta completada, se dispara la eliminación.
+                if (metas
+                    .any((meta) => meta.montoActual >= meta.montoObjetivo)) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _checkAndDeleteCompletedMetas(metas);
+                  });
+                }
+
+                // Filtrar las metas para mostrar solo las que aún no están completadas.
+                final pendingMetas = metas
+                    .where((meta) => meta.montoActual < meta.montoObjetivo)
+                    .toList();
 
                 return Column(
                   children: [
                     _buildAddButton(context),
-                    metas.isEmpty
-                        ? _buildEmptyState() // Mostrar estado vacío
+                    pendingMetas.isEmpty
+                        ? _buildEmptyState()
                         : Expanded(
-                            child: _buildGoalsCarousel(metas),
+                            child: _buildGoalsCarousel(pendingMetas),
                           ),
                   ],
                 );
@@ -131,15 +165,17 @@ class _GoalsSectionState extends State<GoalsSection> {
       child: TextButton.icon(
         icon:
             const Icon(Icons.add_circle_outline, color: Colors.white, size: 20),
-        label: const Text('Agregar Meta',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-            )),
+        label: const Text(
+          'Agregar Meta',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-          backgroundColor: Color(0xFF228B22),
+          backgroundColor: const Color(0xFF228B22),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
             side: const BorderSide(color: Color(0xFF228B22), width: 1),
@@ -175,7 +211,6 @@ class _GoalsSectionState extends State<GoalsSection> {
   Widget _buildGoalPage(String title, double progress, double metaTotal,
       double metaActual, String categoriaNombre) {
     final clampedProgress = progress.clamp(0.0, 1.0);
-
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(20),

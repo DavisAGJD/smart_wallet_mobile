@@ -62,6 +62,28 @@ class ApiServiceMetas {
       throw Exception('Error: ${e.response?.data?['error'] ?? e.message}');
     }
   }
+
+  Future<void> deleteMeta(int metaId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      if (token == null) throw Exception('No hay token disponible');
+
+      final response = await _dio.delete(
+        '$_baseUrl/metas/delete/$metaId',
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+        ),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Error al eliminar la meta');
+      }
+    } on DioException catch (e) {
+      throw Exception(
+          'Error al eliminar la meta: ${e.response?.data?['error'] ?? e.message}');
+    }
+  }
 }
 
 class ApiServiceUpdateAmount {

@@ -13,7 +13,9 @@ import 'package:smart_wallet/main.dart';
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(MyApp());
+
+    final GlobalKey<NavigatorState> testNavigatorKey =
+        GlobalKey<NavigatorState>();
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);
@@ -22,6 +24,11 @@ void main() {
     // Tap the '+' icon and trigger a frame.
     await tester.tap(find.byIcon(Icons.add));
     await tester.pump();
+    await tester.pumpWidget(MyApp(
+      initialRoute: '/first',
+      navigatorKey: testNavigatorKey,
+    ));
+    expect(find.byType(MyApp), findsOneWidget);
 
     // Verify that our counter has incremented.
     expect(find.text('0'), findsNothing);

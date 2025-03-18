@@ -5,6 +5,7 @@ import 'screens/first_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/main_screen.dart';
 import 'screens/notifications_screen.dart';
+import 'screens/payment_screen.dart';
 
 // GlobalKey para navegación global
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -80,6 +81,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => LoginScreen(),
         '/main': (context) => MainScreen(),
         '/notifications': (context) => NotificationsScreen(userId: '1234'),
+        '/payment': (context) => PaymentScreen(),
       },
     );
   }

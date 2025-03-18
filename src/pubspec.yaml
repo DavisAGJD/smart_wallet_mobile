@@ -42,6 +42,7 @@ dependencies:
   google_fonts: ^4.0.3  # Revisa la última versión en pub.dev
 
   # Other dependencies
+  flutter_stripe: ^11.4.0
   dio: ^5.0.0
   image_picker: ^1.1.2
   speech_to_text: ^6.3.0

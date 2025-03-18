@@ -4,6 +4,7 @@ import '../screens/first_screen.dart';
 import '../screens/reportes_screen.dart';
 import '../screens/recompensas_screen.dart';
 import '../services/api_service_profile.dart';
+import '../screens/payment_screen.dart';
 
 class CustomDrawer extends StatefulWidget {
   const CustomDrawer({Key? key}) : super(key: key);
@@ -150,6 +151,14 @@ class _CustomDrawerState extends State<CustomDrawer> {
           onTap: () {
             Navigator.pop(context);
             Navigator.pushNamed(context, '/goals');
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.payment),
+          title: const Text('Método de Pago'),
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.pushNamed(context, '/payment');
           },
         ),
         // Historial

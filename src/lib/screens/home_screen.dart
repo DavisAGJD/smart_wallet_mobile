@@ -34,6 +34,9 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _cargarUltimosGastos();
     _cargarNombreUsuario();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showSubscriptionDialog(); // Mostrar el anuncio de suscripción después de que el widget se haya construido
+    });
   }
 
   Future<String?> getUserId() async {
@@ -165,6 +168,44 @@ class _HomeScreenState extends State<HomeScreen> {
         expenseSummaryKey.currentState?.fetchFinances();
       }
     });
+  }
+
+  void _showSubscriptionDialog() async {
+    final prefs = await SharedPreferences.getInstance();
+    final alreadyShown = prefs.getBool('subscription_shown') ?? false;
+
+    if (!alreadyShown) {
+      showDialog(
+        context: context,
+        barrierDismissible: false, // Evita que se cierre al tocar fuera del diálogo
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('🔥 ¡Oferta Especial!'),
+            content: const Text(
+              'Obtén una suscripción anual por solo \$50 MXN para acceder a funciones premium. 🚀',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Cierra el diálogo
+                },
+                child: const Text('Más tarde'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Cierra el diálogo
+                  Navigator.pushNamed(context, '/payment'); // Dirige al pago
+                },
+                child: const Text('Suscribirse Ahora'),
+              ),
+            ],
+          );
+        },
+      );
+
+      // Marcar que ya se mostró el anuncio
+      await prefs.setBool('subscription_shown', true);
+    }
   }
 
   @override

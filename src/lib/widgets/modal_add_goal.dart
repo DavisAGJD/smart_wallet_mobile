@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
-// Asegúrate de importar tus servicios y modelos reales:
-// import 'package:smart_wallet/services/api_service_metas.dart';
-// import 'package:smart_wallet/services/api_service_profile.dart';
-// import 'package:smart_wallet/services/api_service_update_amount.dart';
 
 class MetasAddAmountModal extends StatefulWidget {
   const MetasAddAmountModal({super.key});
@@ -14,9 +10,6 @@ class MetasAddAmountModal extends StatefulWidget {
 
 class _MetasAddAmountModalState extends State<MetasAddAmountModal> {
   final _formKey = GlobalKey<FormState>();
-
-  // Servicio simulado, reemplaza por el real
-  // final ApiServiceGetMetas _getMetas = ApiServiceGetMetas();
 
   bool isLoading = true;
   bool isSaving = false;
@@ -36,7 +29,6 @@ class _MetasAddAmountModalState extends State<MetasAddAmountModal> {
 
   Future<void> _fetchMetas() async {
     try {
-      // final metasList = await _getMetas.getMetasWithCategories();
       // Simulación de datos; reemplaza por tu servicio real
       await Future.delayed(const Duration(seconds: 1));
       final metasList = [
@@ -101,25 +93,6 @@ class _MetasAddAmountModalState extends State<MetasAddAmountModal> {
       final metaId = int.parse(selectedMetaId!);
       final monto = double.parse(montoController.text);
 
-      // Ejemplo de obtención de presupuesto; reemplaza por tu servicio real
-      // final ApiServiceProfile profileService = ApiServiceProfile();
-      // final userId = await profileService.getUserId();
-      // if (userId == null) {
-      //   _showErrorModal("Usuario no autenticado");
-      //   setState(() => isSaving = false);
-      //   return;
-      // }
-      // final dataProfile = await profileService.getUserProfile(userId: userId);
-      // final presupuestoValue = dataProfile['ingresos'];
-      // if (presupuestoValue == null) {
-      //   _showErrorModal('No se pudo obtener tu presupuesto.');
-      //   setState(() => isSaving = false);
-      //   return;
-      // }
-      // final presupuesto = presupuestoValue is double
-      //     ? presupuestoValue
-      //     : double.tryParse(presupuestoValue.toString()) ?? 0.0;
-
       // Simulación de presupuesto
       final presupuesto = 10000.0;
       if (presupuesto == 0.0) {
@@ -139,18 +112,7 @@ class _MetasAddAmountModalState extends State<MetasAddAmountModal> {
         return;
       }
 
-      // Actualizar la meta con el nuevo monto.
-      // Ejemplo: await ApiServiceUpdateAmount().updateAmount(metaId, monto);
-
-      // También podrías guardar la fuente y descripción en tu backend.
-      // Ejemplo:
-      // await ApiServiceUpdateAmount().updateAmountWithDetails(
-      //   metaId: metaId,
-      //   monto: monto,
-      //   fuente: selectedFuente,
-      //   descripcion: descripcionController.text,
-      // );
-
+      // Aquí se actualizaría la meta con el nuevo monto.
       _showSuccessSnackbar('Monto actualizado correctamente');
       Navigator.of(context).pop();
     } on FormatException {
@@ -180,7 +142,7 @@ class _MetasAddAmountModalState extends State<MetasAddAmountModal> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Ícono destacado (CircleAvatar) como en el primer modal
+              // Ícono destacado
               CircleAvatar(
                 radius: 40,
                 backgroundColor: Colors.greenAccent.withOpacity(0.2),
@@ -206,25 +168,29 @@ class _MetasAddAmountModalState extends State<MetasAddAmountModal> {
                       const CircularProgressIndicator()
                     else
                       DropdownButtonFormField2<String>(
+                        isExpanded: true,
                         decoration: _buildInputDecoration(label: 'Meta'),
                         value: selectedMetaId,
-                        items: metas
-                            .map(
-                              (meta) => DropdownMenuItem<String>(
-                                value: meta.metaId.toString(),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      _getCategoryIcon(meta.categoriaNombre),
-                                      color: Colors.grey[600],
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Text(meta.nombreMeta),
-                                  ],
+                        items: metas.map((meta) {
+                          return DropdownMenuItem<String>(
+                            value: meta.metaId.toString(),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  _getCategoryIcon(meta.categoriaNombre),
+                                  color: Colors.grey[600],
                                 ),
-                              ),
-                            )
-                            .toList(),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    meta.nombreMeta,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
                         onChanged: (String? newValue) {
                           setState(() => selectedMetaId = newValue);
                         },
@@ -252,6 +218,7 @@ class _MetasAddAmountModalState extends State<MetasAddAmountModal> {
                     const SizedBox(height: 20),
                     // FUENTE DEL INGRESO
                     DropdownButtonFormField2<String>(
+                      isExpanded: true,
                       decoration:
                           _buildInputDecoration(label: 'Fuente del ingreso'),
                       hint: const Text('Selecciona la fuente'),
@@ -265,7 +232,12 @@ class _MetasAddAmountModalState extends State<MetasAddAmountModal> {
                       ].map((fuente) {
                         return DropdownMenuItem<String>(
                           value: fuente,
-                          child: Text(fuente),
+                          child: Expanded(
+                            child: Text(
+                              fuente,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                         );
                       }).toList(),
                       onChanged: (String? value) {
@@ -376,7 +348,6 @@ class _MetasAddAmountModalState extends State<MetasAddAmountModal> {
   }
 }
 
-// Ejemplo de modelo Meta (ajusta según tu proyecto real)
 class Meta {
   final int metaId;
   final String nombreMeta;

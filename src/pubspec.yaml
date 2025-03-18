@@ -101,6 +101,7 @@ flutter:
     - 'assets/logo.png'
     - 'assets/google_logo.png'
     - 'assets/facebook_logo.png'
+    - 'assets/premium-12TzW-Zx.jpg'
   #  - 'assets/twitter_logo.png'
     - assets/models/expense_classifier_seq.tflite
     - assets/labels/vocab.txt

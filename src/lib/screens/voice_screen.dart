@@ -33,13 +33,33 @@ class _VoiceScreenState extends State<VoiceScreen> {
 
   void _startListening() async {
     try {
-      bool available = await _speech.initialize();
+      // Inicializamos con callbacks para estado y errores
+      bool available = await _speech.initialize(
+        onStatus: (status) {
+          // Si el servicio se detiene y aún se desea grabar, reiniciamos después de un breve retraso
+          if (status == "notListening" && _isListening) {
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (_isListening) {
+                _startListening();
+              }
+            });
+          }
+        },
+        onError: (errorNotification) {
+          _showErrorDialog(
+              'Error de reconocimiento: ${errorNotification.errorMsg}');
+        },
+      );
       if (available) {
         setState(() => _isListening = true);
         _speech.listen(
           onResult: (result) => setState(() {
             _transcription = result.recognizedWords;
           }),
+          // Removemos listenFor y pauseFor para dejar la grabación activa
+          partialResults: true,
+          cancelOnError: false,
+          listenMode: stt.ListenMode.dictation,
         );
       } else {
         _showErrorDialog('Reconocimiento de voz no disponible');
@@ -55,7 +75,6 @@ class _VoiceScreenState extends State<VoiceScreen> {
       setState(() => _isListening = false);
 
       if (_transcription.isNotEmpty) {
-        // Analiza múltiples gastos en el input de voz
         final results = _tfliteService.predictMultipleExpenses(_transcription);
         if (results.isNotEmpty) {
           bool? confirm = await _showExpensesListDialog(results);
@@ -70,13 +89,11 @@ class _VoiceScreenState extends State<VoiceScreen> {
     }
   }
 
-  /// Mapea la etiqueta predicha a un ID de categoría (ejemplo usando índice + 1).
   int _mapCategoryLabelToId(String label) {
     int index = _tfliteService.categories.indexOf(label);
     return (index >= 0) ? index + 1 : 0;
   }
 
-  /// Registra un gasto usando PostServiceGastos.
   Future<void> _confirmExpense(Map<String, dynamic> result) async {
     try {
       int categoryId = _mapCategoryLabelToId(result['category']['label']);
@@ -95,8 +112,6 @@ class _VoiceScreenState extends State<VoiceScreen> {
     }
   }
 
-  /// Muestra un modal con la lista de gastos detectados para que el usuario los revise.
-  /// Muestra un modal con la lista de gastos detectados para que el usuario los revise.
   Future<bool?> _showExpensesListDialog(List<Map<String, dynamic>> expenses) {
     return showDialog<bool>(
       context: context,
@@ -108,15 +123,13 @@ class _VoiceScreenState extends State<VoiceScreen> {
           elevation: 16,
           child: Container(
             padding: const EdgeInsets.all(16.0),
-            constraints: BoxConstraints(
-              maxHeight: media.size.height * 0.6,
-            ),
+            constraints: BoxConstraints(maxHeight: media.size.height * 0.6),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Text(
                   'Gastos detectados',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 10),
                 const Divider(thickness: 1, color: Colors.grey),
@@ -125,25 +138,45 @@ class _VoiceScreenState extends State<VoiceScreen> {
                     shrinkWrap: true,
                     itemCount: expenses.length,
                     separatorBuilder: (context, index) =>
-                        const Divider(height: 1, color: Colors.grey),
+                        const SizedBox(height: 8),
                     itemBuilder: (context, index) {
                       final expense = expenses[index];
-                      return ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        leading:
-                            const Icon(Icons.receipt_long, color: Colors.green),
-                        title: Text(
-                          expense['category']['label'],
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                        subtitle: Text(
-                          "Monto: \$${expense['amount']}\nDescripción: ${expense['description']}",
-                        ),
-                        trailing: Text(
-                          expense['category']['confidence'],
-                          style: const TextStyle(
-                              color: Colors.blue, fontWeight: FontWeight.bold),
+                      return Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15)),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          leading: Icon(Icons.receipt_long,
+                              color: Colors.green.shade700),
+                          title: Text(
+                            expense['category']['label'],
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 18),
+                          ),
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: 4.0),
+                            child: Text(
+                              "Monto: \$${expense['amount']}\nDescripción: ${expense['description']}",
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ),
+                          trailing: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.green.shade50,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              expense['category']['confidence'],
+                              style: const TextStyle(
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16),
+                            ),
+                          ),
                         ),
                       );
                     },
@@ -164,8 +197,7 @@ class _VoiceScreenState extends State<VoiceScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                            borderRadius: BorderRadius.circular(10)),
                         padding: const EdgeInsets.symmetric(
                             horizontal: 20, vertical: 10),
                       ),
@@ -182,11 +214,9 @@ class _VoiceScreenState extends State<VoiceScreen> {
     );
   }
 
-  /// Inserta los gastos uno a uno sin mostrar una barra de progreso.
   Future<void> _insertExpenses(List<Map<String, dynamic>> expenses) async {
     for (var expense in expenses) {
       await _confirmExpense(expense);
-      // Permite ceder el control a la UI si es necesario.
       await Future.delayed(const Duration(milliseconds: 100));
     }
     ScaffoldMessenger.of(context).showSnackBar(
@@ -201,12 +231,14 @@ class _VoiceScreenState extends State<VoiceScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Error'),
-        content: Text(message),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Error',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        content: Text(message, style: const TextStyle(fontSize: 16)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: const Text('OK', style: TextStyle(fontSize: 16)),
           ),
         ],
       ),
@@ -224,61 +256,107 @@ class _VoiceScreenState extends State<VoiceScreen> {
   Widget build(BuildContext context) {
     final media = MediaQuery.of(context);
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Registro por Voz'),
-        backgroundColor: Colors.green,
+        title: const Text('Registro por Voz',
+            style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.white.withOpacity(0.8),
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.green),
       ),
-      body: Padding(
-        padding: EdgeInsets.all(media.size.width * 0.05),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.mic,
-                size: media.size.width * 0.3,
-                color: _isListening ? Colors.green : Colors.grey,
-              ),
-              SizedBox(height: media.size.height * 0.03),
-              Text(
-                _isListening ? 'Escuchando...' : 'Presiona para grabar',
-                style: TextStyle(fontSize: media.size.width * 0.06),
-              ),
-              SizedBox(height: media.size.height * 0.03),
-              Container(
-                padding: EdgeInsets.all(media.size.width * 0.04),
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  _transcription.isEmpty
-                      ? 'Di algo como: "Gasté 50 pesos en el supermercado"'
-                      : _transcription,
-                  style: TextStyle(fontSize: media.size.width * 0.045),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              SizedBox(height: media.size.height * 0.03),
-              ElevatedButton.icon(
-                icon: Icon(
-                  _isListening ? Icons.stop : Icons.mic_none,
-                  size: media.size.width * 0.06,
-                ),
-                label: Text(
-                  _isListening ? 'Detener' : 'Iniciar',
-                  style: TextStyle(fontSize: media.size.width * 0.05),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: media.size.width * 0.08,
-                    vertical: media.size.height * 0.02,
+      backgroundColor: Colors.white,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.white, Colors.green.shade50],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(media.size.width * 0.05),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.green.shade50,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(20),
+                  child: Icon(
+                    Icons.mic,
+                    size: media.size.width * 0.3,
+                    color: _isListening ? Colors.green : Colors.grey,
                   ),
                 ),
-                onPressed: _isListening ? _stopListening : _startListening,
-              ),
-            ],
+                const SizedBox(height: 30),
+                Text(
+                  _isListening ? 'Grabando...' : 'Presiona para grabar',
+                  style: TextStyle(
+                    fontSize: media.size.width * 0.06,
+                    color: Colors.green,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 30),
+                Container(
+                  padding: EdgeInsets.all(media.size.width * 0.04),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: Colors.green.shade200),
+                    borderRadius: BorderRadius.circular(15),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    _transcription.isEmpty
+                        ? 'Di algo como: "Gasté 50 pesos en el supermercado"'
+                        : _transcription,
+                    style: TextStyle(
+                      fontSize: media.size.width * 0.045,
+                      color: Colors.black87,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 30),
+                ElevatedButton.icon(
+                  icon: Icon(
+                    _isListening ? Icons.stop : Icons.mic_none,
+                    size: media.size.width * 0.06,
+                  ),
+                  label: Text(
+                    _isListening ? 'Detener' : 'Iniciar',
+                    style: TextStyle(fontSize: media.size.width * 0.05),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20)),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: media.size.width * 0.08,
+                      vertical: media.size.height * 0.02,
+                    ),
+                    elevation: 5,
+                  ),
+                  onPressed: _isListening ? _stopListening : _startListening,
+                ),
+              ],
+            ),
           ),
         ),
       ),

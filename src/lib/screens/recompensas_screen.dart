@@ -19,18 +19,13 @@ class _RecompensasScreenState extends State<RecompensasScreen> {
   @override
   void initState() {
     super.initState();
-
-    // Configurar el FocusNode para refrescar datos al volver a la pantalla
     _focusNode = FocusNode();
     _focusNode.addListener(() {
-      // Si recupera el foco y no es la primera vez, recarga puntos
       if (_focusNode.hasFocus && mounted && !_firstLoad) {
         _loadPuntos();
       }
       _firstLoad = false;
     });
-
-    // Carga inicial de puntos
     _loadPuntos();
   }
 
@@ -41,7 +36,6 @@ class _RecompensasScreenState extends State<RecompensasScreen> {
     super.dispose();
   }
 
-  /// Obtiene el token y userId de SharedPreferences, llama al servicio para traer los puntos
   Future<void> _loadPuntos() async {
     setState(() => _isLoading = true);
     try {
@@ -66,7 +60,6 @@ class _RecompensasScreenState extends State<RecompensasScreen> {
     }
   }
 
-  /// Llama a la API para canjear la recompensa Premium
   Future<void> _canjearPremium() async {
     setState(() => _isLoading = true);
     try {
@@ -98,94 +91,189 @@ class _RecompensasScreenState extends State<RecompensasScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Progreso para la barra
+    final double progressValue =
+        (_puntosUsuario >= 100) ? 1.0 : _puntosUsuario / 100.0;
+
     return Focus(
       focusNode: _focusNode,
       autofocus: true,
       child: Scaffold(
-        backgroundColor: const Color(0xFF228B22), // Fondo verde
         appBar: AppBar(
           backgroundColor: const Color(0xFF228B22),
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
           title: const Text(
             'Recompensas',
-            style: TextStyle(fontSize: 24, color: Colors.white),
+            style: TextStyle(
+                fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
           ),
           centerTitle: true,
-          elevation: 0,
-          iconTheme: const IconThemeData(color: Colors.white),
         ),
-        body: Column(
-          children: [
-            // Sección superior: título, puntos, etc.
-            Container(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  const Text(
-                    'Tus Recompensas',
-                    style: TextStyle(
-                      fontSize: 22,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Puntos disponibles: $_puntosUsuario',
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
-                  ),
-                ],
-              ),
-            ),
-            // Contenedor blanco con bordes redondeados
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(24),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(24),
-                    topRight: Radius.circular(24),
+        // Eliminamos la franja verde de abajo. Todo el body será un Container blanco o gris claro
+        body: Container(
+          color: Colors.grey.shade100,
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      // Encabezado con los puntos disponibles
+                      Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.only(bottom: 20),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 16,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.green,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            const Text(
+                              'Tus Recompensas',
+                              style: TextStyle(
+                                fontSize: 20,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Puntos disponibles: $_puntosUsuario',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Tarjeta de Recompensa Premium
+                      Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 5,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            children: [
+                              // Título con ícono
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.star,
+                                    color: Colors.amber[700],
+                                    size: 28,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'Recompensa Premium',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              // Imagen o ícono
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.asset(
+                                  'assets/premium-12TzW-Zx.jpg',
+                                  height: 100,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              // Descripción
+                              Text(
+                                'Cambia tu suscripción a Premium por 2 días.\n¡Disfruta de beneficios exclusivos!',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              // Puntos requeridos
+                              Text(
+                                'Puntos requeridos: 100',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              // Barra de progreso
+                              LinearProgressIndicator(
+                                value: progressValue,
+                                backgroundColor: Colors.grey[300],
+                                valueColor: const AlwaysStoppedAnimation<Color>(
+                                  Colors.green,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              if (_puntosUsuario < 100)
+                                Text(
+                                  'Te faltan ${100 - _puntosUsuario} puntos para canjear.',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey[600],
+                                  ),
+                                )
+                              else
+                                const Text(
+                                  '¡Ya puedes canjear!',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.green,
+                                  ),
+                                ),
+                              const SizedBox(height: 16),
+                              // Botón de canje
+                              ElevatedButton(
+                                onPressed: _puntosUsuario >= 100
+                                    ? _canjearPremium
+                                    : null,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green,
+                                  disabledBackgroundColor: Colors.grey.shade300,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                    horizontal: 24,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Canjear Recompensa Premium',
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      // Si quieres más recompensas, agrégalas aquí
+                    ],
                   ),
                 ),
-                child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // Título de la recompensa
-                          const Text(
-                            'Canjear Premium (100 pts)',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          // Botón para canjear
-                          ElevatedButton(
-                            onPressed:
-                                _puntosUsuario >= 100 ? _canjearPremium : null,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF228B22),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 16,
-                                horizontal: 24,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: const Text('Canjear Recompensa Premium'),
-                          ),
-                          const SizedBox(height: 16),
-                          // Aquí puedes agregar más "tarjetas" si ofreces más recompensas
-                          // ...
-                        ],
-                      ),
-              ),
-            ),
-          ],
         ),
       ),
     );

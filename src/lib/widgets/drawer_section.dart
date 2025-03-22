@@ -3,8 +3,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/first_screen.dart';
 import '../screens/reportes_screen.dart';
 import '../screens/recompensas_screen.dart';
-import '../services/api_service_profile.dart';
 import '../screens/payment_screen.dart';
+import '../services/api_service_profile.dart';
+import '../screens/gastos_screen.dart';
 
 class CustomDrawer extends StatefulWidget {
   const CustomDrawer({Key? key}) : super(key: key);
@@ -144,15 +145,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
             );
           },
         ),
-        // Metas
-        ListTile(
-          leading: const Icon(Icons.savings),
-          title: const Text('Metas'),
-          onTap: () {
-            Navigator.pop(context);
-            Navigator.pushNamed(context, '/goals');
-          },
-        ),
+        // Método de Pago
         ListTile(
           leading: const Icon(Icons.payment),
           title: const Text('Método de Pago'),
@@ -161,25 +154,21 @@ class _CustomDrawerState extends State<CustomDrawer> {
             Navigator.pushNamed(context, '/payment');
           },
         ),
-        // Historial
+        // Historial -> GastosScreen
         ListTile(
           leading: const Icon(Icons.history),
           title: const Text('Historial'),
           onTap: () {
             Navigator.pop(context);
-            Navigator.pushNamed(context, '/history');
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => GastosScreen(),
+              ),
+            );
           },
         ),
         const Divider(),
-        // Configuración
-        ListTile(
-          leading: const Icon(Icons.settings),
-          title: const Text('Configuración'),
-          onTap: () {
-            Navigator.pop(context);
-            Navigator.pushNamed(context, '/settings');
-          },
-        ),
         // Cerrar sesión
         ListTile(
           leading: const Icon(Icons.exit_to_app),

@@ -61,35 +61,18 @@ class _MainScreenState extends State<MainScreen> {
       int index, IconData icon, IconData activeIcon, String label) {
     bool isSelected = _selectedIndex == index;
     return BottomNavigationBarItem(
-      icon: AnimatedContainer(
+      icon: AnimatedSwitcher(
         duration: Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        padding: EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? const Color(0xFF228B22).withOpacity(0.15)
-              : Colors.transparent,
-          shape: BoxShape.circle,
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: const Color(0xFF228B22).withOpacity(0.3),
-                    blurRadius: 6,
-                    offset: Offset(0, 2),
-                  )
-                ]
-              : [],
-        ),
-        child: AnimatedSwitcher(
-          duration: Duration(milliseconds: 300),
-          transitionBuilder: (child, animation) {
-            return ScaleTransition(scale: animation, child: child);
-          },
-          child: Icon(
-            isSelected ? activeIcon : icon,
-            key: ValueKey<bool>(isSelected),
-            size: isSelected ? 28 : 24,
-          ),
+        transitionBuilder: (child, animation) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+        child: Icon(
+          isSelected ? activeIcon : icon,
+          key: ValueKey<bool>(isSelected),
+          size: isSelected ? 28 : 24,
         ),
       ),
       label: label,
@@ -106,45 +89,36 @@ class _MainScreenState extends State<MainScreen> {
               index: _selectedIndex,
               children: List.generate(5, (index) => _buildScreen(index)),
             ),
-      bottomNavigationBar: SafeArea(
-        child: Container(
-          decoration: BoxDecoration(
-            border: Border(top: BorderSide(color: Colors.black12, width: 0.3)),
-          ),
-          child: BottomNavigationBar(
-            type: BottomNavigationBarType.fixed,
-            backgroundColor: const Color(0xFF33404F),
-            selectedItemColor: const Color(0xFF228B22),
-            unselectedItemColor: Colors.white70,
-            currentIndex: _selectedIndex,
-            elevation: 8,
-            iconSize: 26,
-            selectedLabelStyle: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.3,
-              height: 1.8,
-            ),
-            unselectedLabelStyle: TextStyle(
-              fontSize: 11.5,
-              fontWeight: FontWeight.w500,
-              letterSpacing: 0.3,
-              height: 1.8,
-            ),
-            onTap: _onItemTapped,
-            items: [
-              _buildNavItem(
-                  0, Icons.home_outlined, Icons.home_filled, 'Inicio'),
-              _buildNavItem(
-                  1, Icons.bar_chart_outlined, Icons.bar_chart, 'Gráficas'),
-              _buildNavItem(
-                  2, Icons.article_outlined, Icons.article, 'Noticias'),
-              _buildNavItem(3, Icons.notifications_outlined,
-                  Icons.notifications, 'Notificaciones'),
-              _buildNavItem(4, Icons.person_outlined, Icons.person, 'Perfil'),
-            ],
-          ),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: const Color(0xFF33404F),
+        selectedItemColor: const Color(0xFF228B22),
+        unselectedItemColor: Colors.white70,
+        currentIndex: _selectedIndex,
+        elevation: 8,
+        iconSize: 26,
+        selectedLabelStyle: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.3,
+          height: 1.8,
         ),
+        unselectedLabelStyle: TextStyle(
+          fontSize: 11.5,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.3,
+          height: 1.8,
+        ),
+        onTap: _onItemTapped,
+        items: [
+          _buildNavItem(0, Icons.home_outlined, Icons.home_filled, 'Inicio'),
+          _buildNavItem(
+              1, Icons.bar_chart_outlined, Icons.bar_chart, 'Gráficas'),
+          _buildNavItem(2, Icons.article_outlined, Icons.article, 'Noticias'),
+          _buildNavItem(3, Icons.notifications_outlined, Icons.notifications,
+              'Notificaciones'),
+          _buildNavItem(4, Icons.person_outlined, Icons.person, 'Perfil'),
+        ],
       ),
     );
   }

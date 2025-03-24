@@ -58,7 +58,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     try {
       final response = await _dio.post(
-        'https://smartwallet-g4hadr0j.b4a.run/create-payment-intent',
+        'https://smartwallet-g4hadr0j.b4a.run/api/payments/create-payment-intent',
         data: {
           'amount': 5000,
           'currency': 'mxn',

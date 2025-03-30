@@ -32,8 +32,11 @@ class _LoginScreenState extends State<LoginScreen> {
         // Navega a MainScreen, que contiene la navbar
         Navigator.pushReplacementNamed(context, '/main');
       } catch (e) {
+        // Se muestra un mensaje de error genérico para contraseña incorrecta
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al iniciar sesión: $e')),
+          SnackBar(
+              content:
+                  Text('Contraseña incorrecta, por favor inténtalo de nuevo')),
         );
       }
     }
@@ -47,7 +50,8 @@ class _LoginScreenState extends State<LoginScreen> {
     final double screenHeight = size.height;
 
     // Valores proporcionales basados en la pantalla
-    final double containerPadding = screenWidth * 0.06; // Ej: ~24 en un ancho de 400
+    final double containerPadding =
+        screenWidth * 0.06; // Ej: ~24 en un ancho de 400
     final double logoHeight = screenHeight * 0.15; // Ajusta según necesidad
     final double verticalSpacing = screenHeight * 0.04;
     final double titleFontSize = screenWidth * 0.06;
@@ -108,7 +112,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               prefixIcon: Icon(Icons.email_outlined),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(color: Colors.grey[300]!),
+                                borderSide:
+                                    BorderSide(color: Colors.grey[300]!),
                               ),
                               filled: true,
                               fillColor: Colors.grey[50],
@@ -130,7 +135,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               prefixIcon: Icon(Icons.lock_outline),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(color: Colors.grey[300]!),
+                                borderSide:
+                                    BorderSide(color: Colors.grey[300]!),
                               ),
                               filled: true,
                               fillColor: Colors.grey[50],
@@ -184,8 +190,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           // Línea divisoria con texto
                           Row(
                             children: [
-                              Expanded(
-                                  child: Divider(color: Colors.grey[400])),
+                              Expanded(child: Divider(color: Colors.grey[400])),
                               Padding(
                                 padding: EdgeInsets.symmetric(
                                     horizontal: dividerHorizontalPadding),
@@ -197,20 +202,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 ),
                               ),
-                              Expanded(
-                                  child: Divider(color: Colors.grey[400])),
+                              Expanded(child: Divider(color: Colors.grey[400])),
                             ],
                           ),
                           SizedBox(height: verticalSpacing * 0.8),
-                          // Botones de login social
+                          // Botón de login social: Se elimina el de Google
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              SocialLoginButton(
-                                logoPath: 'assets/google_logo.png',
-                                onTap: () => print('Login con Google'),
-                              ),
-                              SizedBox(width: screenWidth * 0.06),
                               SocialLoginButton(
                                 logoPath: 'assets/facebook_logo.png',
                                 onTap: () => print('Login con Facebook'),
